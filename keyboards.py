@@ -1,6 +1,10 @@
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 from typing import Dict
 from config import WHITE_LIST
+
+# Конфигурация WebApp
+WEBAPP_URL = "https://abarabash67-debug.github.io/africa-mining-app/"
+
 
 def get_language_keyboard():
     buttons = [
@@ -10,9 +14,10 @@ def get_language_keyboard():
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
+
 def get_main_menu(user_data: Dict) -> ReplyKeyboardMarkup:
-    role = user_data["role"]
-    lang = user_data["lang"]
+    role = user_data.get("role", "user")
+    lang = user_data.get("lang", "RU")
     buttons = []
     
     t = {
@@ -29,7 +34,8 @@ def get_main_menu(user_data: Dict) -> ReplyKeyboardMarkup:
             "ware": "📦 Статус склада",
             "plant": "🏭 Статус фабрики",
             "ai": "🧠 ИИ-Аналитика",
-            "translate": "🌐 Синхронизация докладов"
+            "translate": "🌐 Синхронизация докладов",
+            "dashboard": "📊 Открыть дашборд"
         },
         "EN": {
             "lang": "🌐 Change language",
@@ -44,7 +50,8 @@ def get_main_menu(user_data: Dict) -> ReplyKeyboardMarkup:
             "ware": "📦 Warehouse",
             "plant": "🏭 Processing Plant",
             "ai": "🧠 AI Analytics",
-            "translate": "🌐 Reports Sync"
+            "translate": "🌐 Reports Sync",
+            "dashboard": "📊 Open Dashboard"
         },
         "FR": {
             "lang": "🌐 Changer de langue",
@@ -59,10 +66,20 @@ def get_main_menu(user_data: Dict) -> ReplyKeyboardMarkup:
             "ware": "📦 Entrepôt",
             "plant": "🏭 Usine",
             "ai": "🧠 Analyse IA",
-            "translate": "🌐 Synchronisation"
+            "translate": "🌐 Synchronisation",
+            "dashboard": "📊 Ouvrir Dashboard"
         }
     }
     texts = t[lang]
+    
+    # === ВСЕГДА ПОКАЗЫВАЕМ КНОПКУ ДАШБОРДА ДЛЯ ТОП-РОЛЕЙ ===
+    if role in ["CEO", "MINE_MANAGER", "ASSISTANT"]:
+        buttons.append([
+            KeyboardButton(
+                text=texts["dashboard"],
+                web_app=WebAppInfo(url=WEBAPP_URL)
+            )
+        ])
     
     # === ОБЩИЕ КНОПКИ ДЛЯ ВСЕХ ===
     buttons.append([KeyboardButton(text=texts["lang"])])
@@ -96,7 +113,7 @@ def get_main_menu(user_data: Dict) -> ReplyKeyboardMarkup:
         buttons.append([KeyboardButton(text=texts["blast"])])
         buttons.append([KeyboardButton(text=texts["ware"])])
         buttons.append([KeyboardButton(text=texts["plant"])])
-        buttons.append([KeyboardButton(text=texts["translate"])])  # ← КЛЮЧЕВАЯ КНОПКА ДЛЯ ПЕРЕВОДЧИКА
+        buttons.append([KeyboardButton(text=texts["translate"])])
         buttons.append([KeyboardButton(text=texts["ai"])])
     
     # 4. MINING_HEAD (Начальник майнинга) — добыча + взрывы
@@ -107,22 +124,93 @@ def get_main_menu(user_data: Dict) -> ReplyKeyboardMarkup:
     
     return ReplyKeyboardMarkup(keyboard=buttons, resize_keyboard=True)
 
+
+# ============================================================
+# НЕДОСТАЮЩИЕ ФУНКЦИИ (ДОБАВЛЕНЫ)
+# ============================================================
+
 def get_communicator_menu(lang: str) -> ReplyKeyboardMarkup:
+    """Клавиатура меню Коммуникатора"""
     texts = {
         "RU": {"new": "✉️ Новое", "inbox": "📥 Входящие", "back": "🔙 Назад"},
         "EN": {"new": "✉️ New", "inbox": "📥 Inbox", "back": "🔙 Back"},
         "FR": {"new": "✉️ Nouveau", "inbox": "📥 Boîte", "back": "🔙 Retour"}
     }
-    t = texts[lang]
+    t = texts.get(lang, texts["RU"])
     return ReplyKeyboardMarkup(
-        keyboard=[[KeyboardButton(text=t["new"])], [KeyboardButton(text=t["inbox"])], [KeyboardButton(text=t["back"])]],
+        keyboard=[
+            [KeyboardButton(text=t["new"])],
+            [KeyboardButton(text=t["inbox"])],
+            [KeyboardButton(text=t["back"])]
+        ],
         resize_keyboard=True
     )
 
+
 def get_recipients_keyboard(lang: str, exclude_user_id: str) -> InlineKeyboardMarkup:
+    """Клавиатура для выбора получателя сообщения"""
     buttons = []
     for uid, data in WHITE_LIST.items():
         if uid != exclude_user_id:
-            buttons.append([InlineKeyboardButton(text=f"{data['name']} ({data['role']})", callback_data=f"recipient_{uid}")])
-    buttons.append([InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_main")])
-    return InlineKeyboardMarkup(inline_keyboard=buttons, row_width=1)
+            name = data.get("name", uid)
+            role = data.get("role", "user")
+            buttons.append([
+                InlineKeyboardButton(
+                    text=f"{name} ({role})",
+                    callback_data=f"recipient_{uid}"
+                )
+            ])
+    
+    back_texts = {
+        "RU": "🔙 Назад",
+        "EN": "🔙 Back",
+        "FR": "🔙 Retour"
+    }
+    back_text = back_texts.get(lang, "🔙 Back")
+    buttons.append([InlineKeyboardButton(text=back_text, callback_data="back_to_main")])
+    
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+
+def get_main_keyboard() -> ReplyKeyboardMarkup:
+    """Стандартная клавиатура для обычных пользователей"""
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="⛏️ Статус карьера")],
+            [KeyboardButton(text="🚛 Парк техники")]
+        ],
+        resize_keyboard=True,
+        is_persistent=True
+    )
+
+
+def get_webapp_keyboard(role: str) -> ReplyKeyboardMarkup:
+    """Клавиатура для топ-ролей с кнопкой WebApp"""
+    keyboard = [
+        [KeyboardButton(
+            text="📊 Открыть дашборд",
+            web_app=WebAppInfo(url=WEBAPP_URL)
+        )],
+        [KeyboardButton(text="⛏️ Статус карьера")],
+        [KeyboardButton(text="🚛 Парк техники")]
+    ]
+    
+    if role == "CEO":
+        keyboard.append([
+            KeyboardButton(text="🌍 Глобальная сводка"),
+            KeyboardButton(text="📊 Финансовый отчет")
+        ])
+    
+    return ReplyKeyboardMarkup(
+        keyboard=keyboard,
+        resize_keyboard=True,
+        is_persistent=True
+    )
+
+
+def get_cancel_keyboard() -> ReplyKeyboardMarkup:
+    """Клавиатура с кнопкой отмены"""
+    return ReplyKeyboardMarkup(
+        keyboard=[[KeyboardButton(text="❌ Отмена")]],
+        resize_keyboard=True
+    )

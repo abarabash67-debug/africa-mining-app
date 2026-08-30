@@ -24,6 +24,75 @@
             transition: background 0.3s, color 0.3s;
         }
 
+        .dashboard {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* ===== ПАНЕЛЬ ПЕРЕКЛЮЧЕНИЯ РОЛЕЙ ===== */
+        .role-panel {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            padding: 12px;
+            background: var(--tg-theme-secondary-bg-color, #f3f4f6);
+            border-radius: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .role-btn {
+            padding: 8px 20px;
+            border: 2px solid transparent;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+            opacity: 0.6;
+        }
+
+        .role-btn:hover {
+            opacity: 0.8;
+            transform: scale(1.02);
+        }
+
+        .role-btn.active {
+            opacity: 1;
+            border-color: var(--tg-theme-button-color, #0088cc);
+            background: var(--tg-theme-button-color, #0088cc);
+            color: var(--tg-theme-button-text-color, #ffffff);
+        }
+
+        .role-btn.ceo.active {
+            border-color: #22c55e;
+            background: #22c55e;
+            color: #ffffff;
+        }
+
+        .role-btn.mechanic.active {
+            border-color: #eab308;
+            background: #eab308;
+            color: #ffffff;
+        }
+
+        .role-btn.supply.active {
+            border-color: #3b82f6;
+            background: #3b82f6;
+            color: #ffffff;
+        }
+
+        .role-label {
+            font-size: 12px;
+            color: var(--tg-theme-hint-color, #6b7280);
+            text-align: center;
+            width: 100%;
+            margin-bottom: 4px;
+        }
+
+        /* ===== ОСТАЛЬНЫЕ СТИЛИ ===== */
         .status-dot {
             display: inline-block;
             width: 12px;
@@ -37,11 +106,6 @@
         .status-yellow { background: #eab308; }
         .status-red { background: #ef4444; }
         .status-gray { background: #9ca3af; }
-
-        .dashboard {
-            max-width: 600px;
-            margin: 0 auto;
-        }
 
         .header {
             margin-bottom: 20px;
@@ -215,28 +279,62 @@
             color: var(--tg-theme-text-color, #000000);
         }
 
+        .action-btn.danger {
+            background: #ef4444;
+            color: #ffffff;
+        }
+
         .action-btn .icon {
             font-size: 18px;
         }
 
-        .loading {
-            text-align: center;
-            padding: 40px 20px;
-            color: var(--tg-theme-hint-color, #6b7280);
+        .hidden {
+            display: none !important;
         }
 
-        .loading .spinner {
-            width: 40px;
-            height: 40px;
-            margin: 0 auto 16px;
-            border: 4px solid var(--tg-theme-hint-color, #e5e7eb);
-            border-top-color: var(--tg-theme-button-color, #0088cc);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+        /* Блок для механика */
+        .emergency-btn {
+            width: 100%;
+            padding: 16px;
+            background: #ef4444;
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            animation: pulse 2s infinite;
+            margin-top: 12px;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
+        .warehouse-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--tg-theme-hint-color, #e5e7eb);
+        }
+
+        .warehouse-item:last-child {
+            border-bottom: none;
+        }
+
+        .warehouse-name {
+            font-weight: 500;
+        }
+
+        .warehouse-value {
+            font-weight: 600;
+            color: var(--tg-theme-button-color, #0088cc);
+        }
+
+        .warehouse-value.low {
+            color: #ef4444;
         }
 
         @media (min-width: 480px) {
@@ -262,61 +360,75 @@
 
         @media print {
             .action-bar { display: none; }
+            .role-panel { display: none; }
             .card:active { transform: none; }
             body { background: #ffffff !important; color: #000000 !important; }
             .card { background: #f9fafb !important; }
-        }
-
-        .hidden {
-            display: none !important;
         }
     </style>
 </head>
 <body>
 
 <div class="dashboard" id="app">
-    <!-- Загрузка -->
-    <div id="loading" class="loading">
-        <div class="spinner"></div>
-        <p>Загрузка данных...</p>
+    <!-- ===== ПАНЕЛЬ ПЕРЕКЛЮЧЕНИЯ РОЛЕЙ ===== -->
+    <div class="role-panel">
+        <div class="role-label">👤 Режим:</div>
+        <button class="role-btn ceo active" data-role="ceo" onclick="switchRole('ceo')">
+            👑 CEO
+        </button>
+        <button class="role-btn mechanic" data-role="mechanic" onclick="switchRole('mechanic')">
+            🔧 Механик
+        </button>
+        <button class="role-btn supply" data-role="supply" onclick="switchRole('supply')">
+            📦 Снабжение
+        </button>
     </div>
 
-    <!-- Контент -->
-    <div id="content" class="hidden">
-        <!-- Шапка -->
-        <div class="header">
-            <h1>⛏️ Africa Mining</h1>
-            <div class="subtitle" id="userInfo">Загрузка...</div>
-            <div class="role-badge" id="roleBadge">—</div>
-        </div>
+    <!-- Шапка -->
+    <div class="header">
+        <h1>⛏️ Africa Mining</h1>
+        <div class="subtitle">Демонстрационная версия</div>
+        <div class="role-badge" id="roleBadge">CEO</div>
+    </div>
 
-        <!-- Баннер алертов -->
-        <div id="alertBanner" class="alert-banner hidden">
-            <h3>🚨 КРИТИЧЕСКИЕ АЛЕРТЫ</h3>
-            <div id="alertList"></div>
+    <!-- Баннер алертов (только для CEO) -->
+    <div id="alertBanner" class="alert-banner">
+        <h3>🚨 КРИТИЧЕСКИЕ АЛЕРТЫ</h3>
+        <div id="alertList">
+            <div class="alert-item">
+                <span class="status-dot status-red"></span>
+                <strong>Конго</strong> — Конго-3: Ремонт дробилки
+            </div>
+            <div class="alert-item">
+                <span class="status-dot status-red"></span>
+                <strong>Мозамбик</strong> — Мозамбик-3: Авария на шахте
+            </div>
+            <div class="alert-item">
+                <span class="status-dot status-yellow"></span>
+                <strong>Конго</strong> — Конго-2: Сбой конвейера
+            </div>
         </div>
+    </div>
 
-        <!-- Дашборд -->
-        <div id="dashboardContent"></div>
+    <!-- ===== КОНТЕНТ ===== -->
+    <div id="dashboardContent"></div>
 
-        <!-- Кнопки действий -->
-        <div class="action-bar">
-            <button class="action-btn" id="callBtn">
-                <span class="icon">📞</span> Позвонить
-            </button>
-            <button class="action-btn secondary" id="pdfBtn">
-                <span class="icon">📄</span> PDF-брифинг
-            </button>
-        </div>
+    <!-- ===== КНОПКИ ДЕЙСТВИЙ ===== -->
+    <div class="action-bar">
+        <button class="action-btn" id="callBtn">
+            <span class="icon">📞</span> Позвонить
+        </button>
+        <button class="action-btn secondary" id="pdfBtn">
+            <span class="icon">📄</span> PDF-брифинг
+        </button>
     </div>
 </div>
 
 <script>
     // ================================================================
-    // 1. КОНФИГУРАЦИЯ ДАННЫХ
+    // 1. ДАННЫЕ
     // ================================================================
 
-    // Фейковые данные (синхронизированы с data.py)
     const MINING_DATA = {
         'Конго': {
             mines: [
@@ -344,298 +456,264 @@
         }
     };
 
+    // Данные для склада (Снабжение)
+    const WAREHOUSE_DATA = {
+        'Дизельное топливо': { value: 24500, unit: 'л', critical: 10000 },
+        'Взрывчатка': { value: 180, unit: 'кг', critical: 50 },
+        'Запчасти (компл.)': { value: 12, unit: 'шт', critical: 5 },
+        'Смазочные материалы': { value: 850, unit: 'л', critical: 300 },
+        'Инструмент (наборы)': { value: 8, unit: 'шт', critical: 3 }
+    };
+
+    // Данные для ремонтов (Механик)
+    const REPAIR_DATA = [
+        { equipment: 'Экскаватор №3', issue: 'Замена гидронасоса', status: 'В работе', priority: 'high' },
+        { equipment: 'Бульдозер №7', issue: 'Ремонт гусеницы', status: 'Ожидание запчастей', priority: 'medium' },
+        { equipment: 'Самосвал №12', issue: 'Диагностика двигателя', status: 'Плановый', priority: 'low' },
+        { equipment: 'Дробилка №1', issue: 'Замена броней', status: 'Аварийный ремонт', priority: 'high' }
+    ];
+
     // ================================================================
-    // 2. ПОЛУЧЕНИЕ ПОЛЬЗОВАТЕЛЯ (С ЗАГЛУШКОЙ)
+    // 2. ПЕРЕКЛЮЧЕНИЕ РОЛЕЙ
     // ================================================================
 
-    /**
-     * ГЛАВНОЕ РЕШЕНИЕ:
-     * Если Telegram не передал user, используем заглушку.
-     * Это позволяет открывать WebApp в браузере и при ошибках.
-     */
-    function getUserData() {
-        const tg = window.Telegram?.WebApp;
-        
-        // Пытаемся получить user из Telegram
-        let user = tg?.initDataUnsafe?.user;
-        
-        // Если user нет или это не объект — создаем заглушку
-        if (!user || typeof user !== 'object') {
-            console.warn('⚠️ Telegram user не найден, используем заглушку');
-            
-            // Генерируем случайный ID для демонстрации
-            const fakeId = Math.floor(Math.random() * 1000000000);
-            
-            user = {
-                id: fakeId,
-                first_name: 'Тестовый',
-                last_name: 'Пользователь',
-                username: 'test_user',
-                language_code: 'ru',
-                is_premium: false
-            };
-        }
-        
-        return user;
-    }
+    let currentRole = 'ceo';
 
-    /**
-     * Получение роли пользователя
-     * В реальном проекте данные должны приходить с бэкенда,
-     * но для демо используем маппинг
-     */
-    function getUserRole(userId) {
-        // Пример маппинга ID пользователей на роли
-        // ВНИМАНИЕ: замените на свои ID из WHITE_LIST в config.py!
-        const roleMap = {
-            // '123456789': { role: 'CEO', region: 'all_africa' },
-            // '987654321': { role: 'MINE_MANAGER', region: 'Конго' },
-            // '555555555': { role: 'ASSISTANT', region: 'all_africa' }
+    function switchRole(role) {
+        currentRole = role;
+        
+        // Обновляем активную кнопку
+        document.querySelectorAll('.role-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.querySelector(`.role-btn.${role}`).classList.add('active');
+        
+        // Обновляем бейдж
+        const roleNames = {
+            'ceo': '👑 CEO',
+            'mechanic': '🔧 Механик',
+            'supply': '📦 Снабжение'
         };
+        document.getElementById('roleBadge').textContent = roleNames[role];
         
-        // Если ID есть в маппинге — используем его
-        if (roleMap[userId]) {
-            return roleMap[userId];
-        }
-        
-        // Если ID начинается с 9 — считаем CEO (для демо)
-        if (String(userId).startsWith('9')) {
-            return { role: 'CEO', region: 'all_africa' };
-        }
-        
-        // Если ID начинается с 5 — ASSISTANT (для демо)
-        if (String(userId).startsWith('5')) {
-            return { role: 'ASSISTANT', region: 'all_africa' };
-        }
-        
-        // По умолчанию — MINE_MANAGER (Конго)
-        return { role: 'MINE_MANAGER', region: 'Конго' };
+        // Обновляем контент
+        renderDashboard(role);
     }
 
     // ================================================================
-    // 3. ОСНОВНАЯ ЛОГИКА
+    // 3. РЕНДЕРИНГ ДАШБОРДА
     // ================================================================
 
-    let currentUser = null;
-    let userRoleData = null;
+    function renderDashboard(role) {
+        const container = document.getElementById('dashboardContent');
+        let html = '';
 
-    function init() {
-        const tg = window.Telegram?.WebApp;
-        
-        // Если WebApp есть — сообщаем, что готовы
-        if (tg) {
-            tg.ready();
-        }
-
-        // Получаем данные пользователя (всегда! даже без Telegram)
-        const user = getUserData();
-        currentUser = user;
-        
-        // Определяем роль
-        userRoleData = getUserRole(user.id);
-        
-        // Скрываем загрузку, показываем контент
-        document.getElementById('loading').classList.add('hidden');
-        document.getElementById('content').classList.remove('hidden');
-
-        // Рендерим дашборд
-        renderDashboard(user, userRoleData);
-    }
-
-    function renderDashboard(user, roleConfig) {
-        const role = roleConfig.role;
-        const region = roleConfig.region;
-
-        // Обновляем шапку
-        const userName = [user.first_name, user.last_name].filter(Boolean).join(' ') || user.username || 'Пользователь';
-        document.getElementById('userInfo').textContent = userName + (user.is_premium ? ' ⭐' : '');
-        document.getElementById('roleBadge').textContent = role;
-
-        // Определяем, что показывать
-        let countriesToShow = [];
-
-        if (role === 'CEO' || role === 'ASSISTANT') {
-            countriesToShow = Object.keys(MINING_DATA);
-        } else if (role === 'MINE_MANAGER') {
-            const userCountry = region || 'Конго';
-            if (MINING_DATA[userCountry]) {
-                countriesToShow = [userCountry];
-            } else {
-                countriesToShow = ['Конго'];
-            }
-        } else {
-            countriesToShow = ['Конго'];
-        }
-
-        // Собираем все алерты
-        const allAlerts = [];
+        // Показываем/скрываем баннер алертов (только для CEO)
         const alertBanner = document.getElementById('alertBanner');
-        const alertList = document.getElementById('alertList');
-
-        countriesToShow.forEach(country => {
-            const countryData = MINING_DATA[country];
-            if (!countryData) return;
-            countryData.mines.forEach(mine => {
-                if (mine.issues && mine.issues.length > 0) {
-                    mine.issues.forEach(issue => {
-                        allAlerts.push({
-                            country,
-                            mine: mine.name,
-                            issue,
-                            status: mine.status
-                        });
-                    });
-                }
-            });
-        });
-
-        // Сортируем: сначала критические (red), потом желтые
-        allAlerts.sort((a, b) => {
-            const priority = { red: 0, yellow: 1, green: 2 };
-            return (priority[a.status] || 3) - (priority[b.status] || 3);
-        });
-
-        // Показываем баннер, если есть алерты
-        if (allAlerts.length > 0) {
+        if (role === 'ceo') {
             alertBanner.classList.remove('hidden');
-            alertList.innerHTML = allAlerts.slice(0, 5).map(alert =>
-                `<div class="alert-item">
-                    <span class="status-dot status-${alert.status}"></span>
-                    <strong>${alert.country}</strong> — ${alert.mine}: ${alert.issue}
-                </div>`
-            ).join('');
-            if (allAlerts.length > 5) {
-                alertList.innerHTML += `<div class="alert-item" style="color: var(--tg-theme-hint-color);">...и еще ${allAlerts.length - 5}</div>`;
-            }
         } else {
             alertBanner.classList.add('hidden');
         }
 
-        // Рендерим карточки
-        const container = document.getElementById('dashboardContent');
-        let html = '';
+        // ============================================================
+        // РЕЖИМ CEO — ВСЁ
+        // ============================================================
+        if (role === 'ceo') {
+            Object.keys(MINING_DATA).forEach(country => {
+                const countryData = MINING_DATA[country];
+                if (!countryData) return;
 
-        countriesToShow.forEach(country => {
-            const countryData = MINING_DATA[country];
-            if (!countryData) return;
+                const totalPlan = countryData.mines.reduce((sum, m) => sum + m.plan, 0);
+                const totalActual = countryData.mines.reduce((sum, m) => sum + m.actual, 0);
+                const totalPercent = totalPlan > 0 ? Math.round((totalActual / totalPlan) * 100) : 0;
+                const statusColor = totalPercent >= 90 ? 'green' : totalPercent >= 70 ? 'yellow' : 'red';
 
-            const totalPlan = countryData.mines.reduce((sum, m) => sum + m.plan, 0);
-            const totalActual = countryData.mines.reduce((sum, m) => sum + m.actual, 0);
-            const totalPercent = totalPlan > 0 ? Math.round((totalActual / totalPlan) * 100) : 0;
-            const statusColor = totalPercent >= 90 ? 'green' : totalPercent >= 70 ? 'yellow' : 'red';
+                html += `
+                    <div class="section">
+                        <div class="section-title">
+                            <span>🇨🇩 ${country}</span>
+                            <span style="font-size: 13px; color: var(--tg-theme-hint-color);">
+                                ${countryData.mines.length} рудников
+                            </span>
+                        </div>
+                        <div class="grid">
+                            <div class="card card-full">
+                                <div class="card-header">
+                                    <span class="card-title">📊 Итого по стране</span>
+                                    <span class="status-dot status-${statusColor}"></span>
+                                </div>
+                                <div class="card-stats">
+                                    <div class="stat-item">
+                                        <div class="stat-value">${totalPlan.toLocaleString()}</div>
+                                        <div class="stat-label">План (т/сут)</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <div class="stat-value">${totalActual.toLocaleString()}</div>
+                                        <div class="stat-label">Факт (т/сут)</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <div class="stat-value">${totalPercent}%</div>
+                                        <div class="stat-label">Выполнение</div>
+                                    </div>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill progress-${statusColor}" style="width: ${Math.min(totalPercent, 100)}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="grid" style="margin-top: 8px;">
+                            ${countryData.mines.map(mine => {
+                                const statusDot = mine.status || (mine.percent >= 90 ? 'green' : mine.percent >= 70 ? 'yellow' : 'red');
+                                return `
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <span class="card-title">${mine.name}</span>
+                                            <span class="status-dot status-${statusDot}"></span>
+                                        </div>
+                                        <div class="card-mine-name">${mine.ore}</div>
+                                        <div class="card-stats">
+                                            <div class="stat-item">
+                                                <div class="stat-value">${mine.plan.toLocaleString()}</div>
+                                                <div class="stat-label">План</div>
+                                            </div>
+                                            <div class="stat-item">
+                                                <div class="stat-value">${mine.actual.toLocaleString()}</div>
+                                                <div class="stat-label">Факт</div>
+                                            </div>
+                                            <div class="stat-item">
+                                                <div class="stat-value">${mine.percent}%</div>
+                                                <div class="stat-label">Вып.</div>
+                                            </div>
+                                        </div>
+                                        <div class="progress-bar">
+                                            <div class="progress-fill progress-${statusDot}" style="width: ${Math.min(mine.percent, 100)}%"></div>
+                                        </div>
+                                        ${mine.issues && mine.issues.length > 0 ? `<div style="margin-top: 6px; font-size: 11px; color: #ef4444;">⚠️ ${mine.issues.join(', ')}</div>` : ''}
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+        }
 
+        // ============================================================
+        // РЕЖИМ МЕХАНИК — ТОЛЬКО РЕМОНТЫ
+        // ============================================================
+        if (role === 'mechanic') {
             html += `
                 <div class="section">
                     <div class="section-title">
-                        <span>🇨🇩 ${country}</span>
+                        <span>🔧 Управление ремонтами</span>
                         <span style="font-size: 13px; color: var(--tg-theme-hint-color);">
-                            ${countryData.mines.length} рудников
+                            ${REPAIR_DATA.length} активных
                         </span>
                     </div>
-                    <div class="grid">
-                        <div class="card card-full">
-                            <div class="card-header">
-                                <span class="card-title">📊 Итого по стране</span>
-                                <span class="status-dot status-${statusColor}"></span>
-                            </div>
-                            <div class="card-stats">
-                                <div class="stat-item">
-                                    <div class="stat-value">${totalPlan.toLocaleString()}</div>
-                                    <div class="stat-label">План (т/сут)</div>
+                    ${REPAIR_DATA.map(repair => {
+                        const priorityColor = repair.priority === 'high' ? 'red' : repair.priority === 'medium' ? 'yellow' : 'green';
+                        return `
+                            <div class="card" style="border-left: 4px solid ${priorityColor === 'red' ? '#ef4444' : priorityColor === 'yellow' ? '#eab308' : '#22c55e'}; margin-bottom: 8px;">
+                                <div class="card-header">
+                                    <span class="card-title">🛠️ ${repair.equipment}</span>
+                                    <span class="status-dot status-${priorityColor}"></span>
                                 </div>
-                                <div class="stat-item">
-                                    <div class="stat-value">${totalActual.toLocaleString()}</div>
-                                    <div class="stat-label">Факт (т/сут)</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-value">${totalPercent}%</div>
-                                    <div class="stat-label">Выполнение</div>
-                                </div>
+                                <p style="font-size: 14px; color: var(--tg-theme-text-color, #000000);">
+                                    ${repair.issue}
+                                </p>
+                                <p style="font-size: 12px; color: var(--tg-theme-hint-color, #6b7280); margin-top: 4px;">
+                                    Статус: ${repair.status}
+                                </p>
                             </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill progress-${statusColor}" style="width: ${Math.min(totalPercent, 100)}%"></div>
-                            </div>
-                        </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+
+            // Кнопка аварийной остановки (только для механика)
+            html += `
+                <button class="emergency-btn" onclick="alert('🚨 АВАРИЙНАЯ ОСТАНОВКА ВСЕХ РАБОТ!')">
+                    🚨 АВАРИЙНАЯ ОСТАНОВКА
+                </button>
+            `;
+        }
+
+        // ============================================================
+        // РЕЖИМ СНАБЖЕНИЕ — ТОЛЬКО СКЛАД
+        // ============================================================
+        if (role === 'supply') {
+            html += `
+                <div class="section">
+                    <div class="section-title">
+                        <span>📦 Остатки склада</span>
+                        <span style="font-size: 13px; color: var(--tg-theme-hint-color);">
+                            Обновлено: сегодня
+                        </span>
                     </div>
-                    <div class="grid" style="margin-top: 8px;">
-                        ${countryData.mines.map(mine => {
-                            const statusDot = mine.status || (mine.percent >= 90 ? 'green' : mine.percent >= 70 ? 'yellow' : 'red');
+                    <div class="card">
+                        ${Object.keys(WAREHOUSE_DATA).map(name => {
+                            const data = WAREHOUSE_DATA[name];
+                            const isLow = data.value < data.critical;
                             return `
-                                <div class="card">
-                                    <div class="card-header">
-                                        <span class="card-title">${mine.name}</span>
-                                        <span class="status-dot status-${statusDot}"></span>
-                                    </div>
-                                    <div class="card-mine-name">${mine.ore}</div>
-                                    <div class="card-stats">
-                                        <div class="stat-item">
-                                            <div class="stat-value">${mine.plan.toLocaleString()}</div>
-                                            <div class="stat-label">План</div>
-                                        </div>
-                                        <div class="stat-item">
-                                            <div class="stat-value">${mine.actual.toLocaleString()}</div>
-                                            <div class="stat-label">Факт</div>
-                                        </div>
-                                        <div class="stat-item">
-                                            <div class="stat-value">${mine.percent}%</div>
-                                            <div class="stat-label">Вып.</div>
-                                        </div>
-                                    </div>
-                                    <div class="progress-bar">
-                                        <div class="progress-fill progress-${statusDot}" style="width: ${Math.min(mine.percent, 100)}%"></div>
-                                    </div>
-                                    ${mine.issues && mine.issues.length > 0 ? `<div style="margin-top: 6px; font-size: 11px; color: #ef4444;">⚠️ ${mine.issues.join(', ')}</div>` : ''}
+                                <div class="warehouse-item">
+                                    <span class="warehouse-name">${name}</span>
+                                    <span class="warehouse-value ${isLow ? 'low' : ''}">
+                                        ${data.value.toLocaleString()} ${data.unit}
+                                        ${isLow ? ' ⚠️' : ''}
+                                    </span>
                                 </div>
                             `;
                         }).join('')}
                     </div>
                 </div>
             `;
-        });
+
+            // Дополнительная информация для снабжения
+            html += `
+                <div class="section">
+                    <div class="section-title">
+                        <span>📊 Критические запасы</span>
+                    </div>
+                    <div class="card">
+                        ${Object.keys(WAREHOUSE_DATA).filter(name => WAREHOUSE_DATA[name].value < WAREHOUSE_DATA[name].critical).map(name => {
+                            const data = WAREHOUSE_DATA[name];
+                            return `
+                                <div class="warehouse-item" style="color: #ef4444;">
+                                    <span class="warehouse-name">⚠️ ${name}</span>
+                                    <span class="warehouse-value low">
+                                        ${data.value.toLocaleString()} ${data.unit}
+                                    </span>
+                                </div>
+                            `;
+                        }).join('') || '<p style="color: #22c55e;">✅ Все запасы в норме</p>'}
+                    </div>
+                </div>
+            `;
+        }
 
         container.innerHTML = html;
 
         // Настраиваем кнопки действий
-        setupActionButtons(roleConfig);
+        setupActionButtons(role);
     }
 
-    function setupActionButtons(roleConfig) {
-        const role = roleConfig.role;
-        const region = roleConfig.region;
+    // ================================================================
+    // 4. НАСТРОЙКА КНОПОК
+    // ================================================================
 
-        // Кнопка звонка
+    function setupActionButtons(role) {
         const callBtn = document.getElementById('callBtn');
 
-        if (role === 'CEO') {
-            callBtn.textContent = '📞 Связаться с директором';
-            callBtn.onclick = () => {
-                const countries = Object.keys(MINING_DATA);
-                const firstCountry = countries[0];
-                const phone = MINING_DATA[firstCountry]?.phone;
-                if (phone) {
-                    window.location.href = `tel:${phone}`;
-                } else {
-                    alert('Телефон не найден');
-                }
-            };
-        } else if (role === 'MINE_MANAGER') {
-            const userCountry = region || 'Конго';
-            const phone = MINING_DATA[userCountry]?.phone;
-            if (phone) {
-                callBtn.textContent = `📞 Позвонить диспетчеру (${userCountry})`;
-                callBtn.onclick = () => {
-                    window.location.href = `tel:${phone}`;
-                };
-            } else {
-                callBtn.style.opacity = '0.5';
-                callBtn.textContent = '📞 Телефон не найден';
-                callBtn.onclick = () => alert('Телефон для этой страны не настроен');
-            }
-        } else {
-            callBtn.textContent = '📞 Контакты';
-            callBtn.onclick = () => {
-                alert('Для получения контактов обратитесь к CEO');
-            };
+        if (role === 'ceo') {
+            callBtn.textContent = '📞 Связаться с директорами';
+            callBtn.onclick = () => alert('📞 Звонок директорам стран');
+        } else if (role === 'mechanic') {
+            callBtn.textContent = '📞 Вызвать ремонтную бригаду';
+            callBtn.onclick = () => alert('📞 Ремонтная бригада вызвана!');
+        } else if (role === 'supply') {
+            callBtn.textContent = '📞 Связаться со снабжением';
+            callBtn.onclick = () => alert('📞 Запрос на пополнение склада отправлен!');
         }
 
         // Кнопка PDF
@@ -645,10 +723,19 @@
     }
 
     // ================================================================
-    // 4. ЗАПУСК
+    // 5. ЗАПУСК
     // ================================================================
 
-    // Запускаем сразу, как только загрузилась страница
+    function init() {
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.ready();
+        }
+        
+        // По умолчанию — режим CEO
+        switchRole('ceo');
+    }
+
     document.addEventListener('DOMContentLoaded', init);
 </script>
 </body>

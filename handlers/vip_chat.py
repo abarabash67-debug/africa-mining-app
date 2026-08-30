@@ -1,83 +1,61 @@
 from aiogram import Router, F
-from aiogram.types import Message, CallbackQuery
-from aiogram.filters import Command
+from aiogram.types import Message
+from datetime import datetime
+
 from config import WHITE_LIST
-from keyboards import get_main_menu
+from utils import load_vip_messages, save_vip_messages
 
 router = Router()
 
-# Хранилище активных пользователей в VIP-чате
-VIP_USERS = set()
-
-@router.message(Command("vipchat"))
-async def vip_chat_start(message: Message):
+@router.message(F.text.in_(["💬 VIP-Чат", "💬 VIP Chat", "💬 Chat VIP"]))
+async def vip_chat_menu(message: Message):
     user_id = str(message.from_user.id)
     if user_id not in WHITE_LIST:
-        await message.answer("❌ Доступ запрещен")
         return
     
-    VIP_USERS.add(user_id)
-    lang = WHITE_LIST[user_id]["lang"]
-    
-    texts = {
-        "RU": "💬 **Вы вошли в VIP-Чат!**\n\nВсе сообщения будут автоматически переведены на 3 языка.\nКоманда: /leave - покинуть чат",
-        "EN": "💬 **You entered VIP Chat!**\n\nAll messages will be auto-translated to 3 languages.\nCommand: /leave - leave chat",
-        "FR": "💬 **Vous êtes dans le Chat VIP!**\n\nTous les messages seront traduits en 3 langues.\nCommande: /leave - quitter le chat"
-    }
-    await message.answer(texts[lang])
+    await message.answer(
+        "💬 **VIP-Чат**\n\n"
+        "Напишите сообщение, и оно будет отправлено всем топ-менеджерам."
+    )
 
-@router.message(Command("leave"))
-async def leave_vip_chat(message: Message):
-    user_id = str(message.from_user.id)
-    VIP_USERS.discard(user_id)
-    
-    lang = WHITE_LIST.get(user_id, {}).get("lang", "RU")
-    texts = {
-        "RU": "👋 Вы покинули VIP-чат",
-        "EN": "👋 You left VIP chat",
-        "FR": "👋 Vous avez quitté le chat VIP"
-    }
-    await message.answer(texts[lang], reply_markup=get_main_menu(WHITE_LIST.get(user_id, {})))
 
 @router.message(F.text)
 async def handle_vip_message(message: Message):
     user_id = str(message.from_user.id)
     
-    # Проверяем, в VIP-чате ли пользователь
-    if user_id not in VIP_USERS:
+    if message.text.startswith('/') or user_id not in WHITE_LIST:
         return
     
-    if message.text.startswith('/'):
+    # Проверяем, что это сообщение в VIP-чате (не из других хендлеров)
+    if not message.text or len(message.text) > 200:
         return
     
-    if user_id not in WHITE_LIST:
-        return
+    sender_name = WHITE_LIST[user_id].get("name", "Пользователь")
     
-    user_data = WHITE_LIST[user_id]
-    lang = user_data["lang"]
-    name = user_data["name"]
-    text = message.text
+    # Сохраняем сообщение
+    vip_messages = load_vip_messages()
+    vip_messages.append({
+        "id": str(datetime.now().timestamp()),
+        "from": user_id,
+        "from_name": sender_name,
+        "text": message.text,
+        "timestamp": datetime.now().isoformat()
+    })
+    save_vip_messages(vip_messages)
     
-    # Отправляем сообщение всем в VIP-чате (кроме отправителя)
-    for vip_user in VIP_USERS:
-        if vip_user != user_id:
+    # Отправляем всем топ-менеджерам
+    from bot import bot
+    
+    sent_count = 0
+    for uid, data in WHITE_LIST.items():
+        if uid != user_id and data.get("role") in ["CEO", "MINE_MANAGER", "ASSISTANT"]:
             try:
                 await bot.send_message(
-                    vip_user,
-                    f"💬 **{name}** ({lang}):\n{text}"
+                    uid,
+                    f"💬 **VIP-сообщение от {sender_name}:**\n\n{message.text}"
                 )
-            except:
-                pass
+                sent_count += 1
+            except Exception as e:
+                print(f"Не удалось отправить VIP-сообщение {uid}: {e}")
     
-    # Подтверждение отправителю
-    texts = {
-        "RU": f"✅ Ваше сообщение отправлено в VIP-чат ({len(VIP_USERS)-1} получателей)",
-        "EN": f"✅ Your message sent to VIP chat ({len(VIP_USERS)-1} recipients)",
-        "FR": f"✅ Votre message envoyé au chat VIP ({len(VIP_USERS)-1} destinataires)"
-    }
-    await message.answer(texts.get(lang, texts["RU"]))
-
-# Обработчик кнопки VIP-Чат
-@router.message(F.text.in_(["💬 VIP-Чат", "💬 VIP Chat", "💬 Chat VIP"]))
-async def vip_chat_button(message: Message):
-    await vip_chat_start(message)
+    await message.answer(f"✅ Сообщение отправлено {sent_count} топ-менеджерам.")

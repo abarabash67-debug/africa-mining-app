@@ -1,4 +1,4 @@
-# config.py
+import os
 BOT_TOKEN = "8767167366:AAGs3xtM72FYcx7nc1GKxDba2b7la13JaeQ"
 
 WHITE_LIST = {
@@ -24,3 +24,25 @@ ROLE_TRANSLATIONS = {
     "CHIEF_MECHANIC": {"RU": "Главный механик", "EN": "Chief Mechanic", "FR": "Mécanicien Chef"},
     "BLASTING_HEAD": {"RU": "Начальник взрывных работ", "EN": "Blasting Head", "FR": "Chef Tir"}
 }
+
+# ============================================
+# КОНФИГУРАЦИЯ WEBAPP
+# ============================================
+WEBAPP_URL = os.getenv("WEBAPP_URL", "https://abarabash67-debug.github.io/africa-mining-app/")
+
+# ============================================
+# ТЕЛЕФОНЫ ДЛЯ КНОПКИ "ПОЗВОНИТЬ"
+# ============================================
+CONTACT_PHONES = {
+    "Конго": "+243XXXXXXXXX",      # Замените на реальные номера
+    "Танзания": "+255XXXXXXXXX",
+    "Мозамбик": "+258XXXXXXXXX",
+    "CEO": "+1234567890"
+}
+
+# ============================================
+# ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ РОЛИ ПО ID
+# ============================================
+def get_user_role(user_id: str) -> Dict[str, Any]:
+    """Возвращает данные пользователя из WHITE_LIST"""
+    return WHITE_LIST.get(user_id, {"role": "user", "region": "Конго"})

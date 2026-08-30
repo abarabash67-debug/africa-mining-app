@@ -1,51 +1,77 @@
 from aiogram import Router, F
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, KeyboardButton, ReplyKeyboardMarkup, WebAppInfo
 from aiogram.filters import Command
-from config import WHITE_LIST, ROLE_TRANSLATIONS
-from keyboards import get_language_keyboard, get_main_menu
-from utils import get_user_lang
+
+from config import WHITE_LIST
+from keyboards import get_main_menu
 
 router = Router()
+
+# Конфигурация WebApp
+WEBAPP_URL = "https://abarabash67-debug.github.io/africa-mining-app/"
+
 
 @router.message(Command("start"))
 async def cmd_start(message: Message):
     user_id = str(message.from_user.id)
-    if user_id not in WHITE_LIST:
-        await message.answer("❌ Доступ запрещен.")
-        return
     
-    user_data = WHITE_LIST[user_id]
-    
-    if "lang" not in user_data or user_data["lang"] not in ["RU", "EN", "FR"]:
-        await message.answer("🌍 **Выберите язык:**", reply_markup=get_language_keyboard())
-        return
-    
-    lang = user_data["lang"]
-    role = user_data["role"]
-    texts = {
-        "RU": f"🏗️ **Добро пожаловать, {user_data['name']}!**\nРегион: {user_data['region'].upper()}\nДолжность: {ROLE_TRANSLATIONS.get(role, {}).get('RU', role)}",
-        "EN": f"🏗️ **Welcome, {user_data['name']}!**\nRegion: {user_data['region'].upper()}\nPosition: {ROLE_TRANSLATIONS.get(role, {}).get('EN', role)}",
-        "FR": f"🏗️ **Bienvenue, {user_data['name']}!**\nRégion: {user_data['region'].upper()}\nPoste: {ROLE_TRANSLATIONS.get(role, {}).get('FR', role)}"
-    }
-    await message.answer(texts[lang], reply_markup=get_main_menu(user_data))
-
-@router.callback_query(F.data.startswith("lang_"))
-async def language_selected(callback: CallbackQuery):
-    user_id = str(callback.from_user.id)
-    lang_code = callback.data.split("_")[1]
-    
+    # Проверяем, есть ли пользователь в белом списке
     if user_id in WHITE_LIST:
-        WHITE_LIST[user_id]["lang"] = lang_code
+        user_data = WHITE_LIST[user_id]
+        role = user_data.get("role", "user")
+        
+        # Для топ-ролей показываем кнопку WebApp
+        if role in ["CEO", "MINE_MANAGER", "ASSISTANT"]:
+            # Создаем клавиатуру с кнопкой WebApp
+            webapp_btn = KeyboardButton(
+                text="📊 Открыть дашборд",
+                web_app=WebAppInfo(url=WEBAPP_URL)
+            )
+            
+            # Добавляем обычные кнопки для навигации
+            keyboard = ReplyKeyboardMarkup(
+                keyboard=[
+                    [webapp_btn],
+                    [KeyboardButton(text="⛏️ Статус карьера")],
+                    [KeyboardButton(text="🚛 Парк техники")]
+                ],
+                resize_keyboard=True,
+                is_persistent=True
+            )
+            
+            await message.answer(
+                f"👋 Добро пожаловать, {message.from_user.first_name}!\n\n"
+                f"Ваша роль: *{role}*\n"
+                f"Нажмите «📊 Открыть дашборд», чтобы открыть мобильный дашборд.",
+                reply_markup=keyboard,
+                parse_mode="Markdown"
+            )
+            return
     
-    user_data = WHITE_LIST[user_id]
-    await callback.message.delete()
-    await callback.message.answer(
-        f"✅ Язык: {lang_code}",
+    # Для обычных пользователей - стандартное меню через get_main_menu
+    user_data = {"role": "user", "lang": "RU"}
+    await message.answer(
+        f"👋 Добро пожаловать, {message.from_user.first_name}!\n\n"
+        "Используйте кнопки ниже для навигации:",
         reply_markup=get_main_menu(user_data)
     )
-    await callback.answer()
 
-@router.message(Command("language"))
-@router.message(F.text.in_(["🌐 Сменить язык", "🌐 Change language", "🌐 Changer de langue"]))
-async def change_language(message: Message):
-    await message.answer("🌍 **Выберите язык:**", reply_markup=get_language_keyboard())
+
+@router.message(F.text == "📊 Открыть дашборд")
+async def open_dashboard(message: Message):
+    """Обработчик для тех, у кого нет кнопки WebApp (запасной вариант)"""
+    user_id = str(message.from_user.id)
+    
+    if user_id in WHITE_LIST:
+        user_data = WHITE_LIST[user_id]
+        role = user_data.get("role", "user")
+        
+        if role in ["CEO", "MINE_MANAGER", "ASSISTANT"]:
+            await message.answer(
+                f"📱 Откройте дашборд по ссылке:\n{WEBAPP_URL}\n\n"
+                "Или используйте кнопку «📊 Открыть дашборд» на клавиатуре."
+            )
+        else:
+            await message.answer("❌ У вас нет доступа к дашборду.")
+    else:
+        await message.answer("❌ Доступ запрещен.")
