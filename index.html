@@ -3,626 +3,624 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Africa Mining Dashboard</title>
+    <title>Africa Mining Command</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         /* ================================================================
-           БАЗА
+           БАЗОВЫЕ ПЕРЕМЕННЫЕ И СБРОС
         ================================================================ */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background: #f0f4f8;
-            color: #1a202c;
-            padding: 16px;
-            min-height: 100vh;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        .dashboard { max-width: 640px; margin: 0 auto; }
+
+        :root {
+            --bg-primary: #0b0e14;
+            --bg-secondary: #141a24;
+            --bg-card: #1c2533;
+            --bg-card-hover: #253040;
+            --text-primary: #f0f4fa;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border-color: #2a3548;
+            --shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --green: #4ade80;
+            --green-bg: rgba(74, 222, 128, 0.12);
+            --red: #f87171;
+            --red-bg: rgba(248, 113, 113, 0.12);
+            --orange: #fb923c;
+            --orange-bg: rgba(251, 146, 60, 0.12);
+            --blue: #60a5fa;
+            --blue-bg: rgba(96, 165, 250, 0.12);
+            --gold: #fbbf24;
+            --gold-bg: rgba(251, 191, 36, 0.12);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            padding: 16px 16px 80px 16px;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .dashboard {
+            max-width: 600px;
+            margin: 0 auto;
+        }
 
         /* ================================================================
            ПАНЕЛЬ ПЕРЕКЛЮЧЕНИЯ РОЛЕЙ
         ================================================================ */
         .role-panel {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             margin-bottom: 24px;
-            padding: 8px;
-            background: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-            flex-wrap: wrap;
-            justify-content: center;
+            padding: 6px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
         }
         .role-btn {
-            padding: 10px 24px;
+            flex: 1;
+            padding: 10px 8px;
             border: none;
-            border-radius: 12px;
-            font-size: 14px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            background: #f7fafc;
-            color: #4a5568;
-            opacity: 0.7;
-            flex: 1 1 auto;
-            min-width: 80px;
+            background: transparent;
+            color: var(--text-secondary);
         }
-        .role-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        .role-btn:hover { color: var(--text-primary); }
         .role-btn.active {
-            opacity: 1;
-            background: #2b6cb0;
+            background: var(--blue);
             color: #fff;
-            box-shadow: 0 4px 12px rgba(43,108,176,0.3);
-            transform: scale(1.02);
+            box-shadow: 0 4px 16px rgba(96, 165, 250, 0.25);
         }
-        .role-btn.ceo.active { background: #2f855a; box-shadow: 0 4px 12px rgba(47,133,90,0.3); }
-        .role-btn.mechanic.active { background: #d69e2e; box-shadow: 0 4px 12px rgba(214,158,46,0.3); }
-        .role-btn.supply.active { background: #2b6cb0; box-shadow: 0 4px 12px rgba(43,108,176,0.3); }
+        .role-btn.ceo.active { background: var(--green); color: #0b0e14; }
+        .role-btn.mechanic.active { background: var(--gold); color: #0b0e14; }
+        .role-btn.supply.active { background: var(--blue); color: #fff; }
 
         /* ================================================================
-           ШАПКА
+           ОБЩИЕ КОМПОНЕНТЫ
         ================================================================ */
-        .header {
-            margin-bottom: 24px;
-            padding-bottom: 16px;
-            border-bottom: 2px solid #e2e8f0;
-        }
-        .header h1 {
-            font-size: 28px;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            background: linear-gradient(135deg, #2f855a, #2b6cb0);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .header .subtitle {
-            font-size: 14px;
-            color: #718096;
-            margin-top: 2px;
-        }
-        .header .role-badge {
-            display: inline-block;
-            background: #2b6cb0;
-            color: #fff;
-            padding: 4px 16px;
-            border-radius: 20px;
-            font-size: 12px;
+        .section-label {
+            font-size: 11px;
             font-weight: 600;
-            margin-top: 8px;
-            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
         }
-        .header .role-badge.ceo { background: #2f855a; }
-        .header .role-badge.mechanic { background: #d69e2e; }
-        .header .role-badge.supply { background: #2b6cb0; }
 
-        /* ================================================================
-           БАННЕР АЛЕРТОВ (ВСЕГДА ВИДЕН)
-        ================================================================ */
-        .alert-banner {
-            background: #fff5f5;
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 24px;
-            border: 1px solid #fed7d7;
-            box-shadow: 0 2px 8px rgba(252,129,129,0.1);
-        }
-        .alert-banner h3 {
-            font-size: 14px;
-            color: #c53030;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .alert-banner h3::before { content: "🚨"; font-size: 18px; }
-        .alert-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 0;
-            font-size: 13px;
-            color: #2d3748;
-            border-bottom: 1px solid #fed7d7;
-        }
-        .alert-item:last-child { border-bottom: none; }
-
-        /* ================================================================
-           АККОРДЕОН
-        ================================================================ */
-        .accordion {
-            background: #ffffff;
-            border-radius: 16px;
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 18px 20px;
             margin-bottom: 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            border: 1px solid #edf2f7;
-            overflow: hidden;
+            border: 1px solid var(--border-color);
             transition: all 0.3s ease;
         }
-        .accordion-header {
+        .card:hover { border-color: #3a4a60; }
+
+        .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px 20px;
-            cursor: pointer;
-            user-select: none;
-            transition: background 0.2s;
-            gap: 12px;
+            margin-bottom: 10px;
         }
-        .accordion-header:hover { background: #f7fafc; }
-        .accordion-header .title {
-            font-size: 16px;
+        .card-title {
+            font-size: 15px;
+            font-weight: 600;
+        }
+        .card-title .icon { margin-right: 8px; }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 10px;
             font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .badge-red { background: var(--red-bg); color: var(--red); }
+        .badge-orange { background: var(--orange-bg); color: var(--orange); }
+        .badge-green { background: var(--green-bg); color: var(--green); }
+        .badge-blue { background: var(--blue-bg); color: var(--blue); }
+        .badge-gold { background: var(--gold-bg); color: var(--gold); }
+
+        .flex-between {
             display: flex;
+            justify-content: space-between;
             align-items: center;
+        }
+
+        .mt-8 { margin-top: 8px; }
+        .mt-12 { margin-top: 12px; }
+        .mt-16 { margin-top: 16px; }
+
+        .hidden { display: none !important; }
+
+        /* ================================================================
+           БЛОК 1: ГЛОБАЛЬНЫЙ КОНТЕКСТ (ВИДЯТ ВСЕ)
+        ================================================================ */
+        .context-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 10px;
         }
-        .accordion-header .title .icon { font-size: 20px; }
+        .context-grid .card { margin-bottom: 0; padding: 14px 16px; }
+        .context-grid .card .value { font-size: 18px; font-weight: 700; }
+        .context-grid .card .label { font-size: 11px; color: var(--text-muted); }
+        .context-grid .card .change { font-size: 12px; font-weight: 600; }
+        .context-grid .card .change.up { color: var(--green); }
+        .context-grid .card .change.down { color: var(--red); }
+
+        .weather-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .weather-item {
+            background: var(--bg-secondary);
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            font-size: 13px;
+        }
+        .weather-item .temp { font-weight: 700; }
+        .weather-item .desc { color: var(--text-secondary); font-size: 12px; }
+
+        /* ================================================================
+           БЛОК 2: КРИТИЧЕСКИЕ АЛЕРТЫ
+        ================================================================ */
+        .alert-card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 16px 18px;
+            margin-bottom: 12px;
+            border-left: 4px solid var(--red);
+            border: 1px solid var(--border-color);
+            border-left-width: 4px;
+            transition: all 0.3s ease;
+        }
+        .alert-card:hover { border-color: #4a2a2a; }
+        .alert-card .top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        .alert-card .title {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .alert-card .desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+        .alert-card .time {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .btn-danger-large {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            background: var(--red);
+            color: #0b0e14;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 8px;
+            text-align: center;
+        }
+        .btn-danger-large:hover {
+            background: #fca5a5;
+            transform: scale(1.01);
+            box-shadow: 0 4px 24px rgba(248, 113, 113, 0.3);
+        }
+
+        /* ================================================================
+           БЛОК 3: ПРОИЗВОДСТВО (АККОРДЕОН, ТОЛЬКО CEO)
+        ================================================================ */
+        .accordion {
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .accordion-header {
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+        }
+        .accordion-header:hover { opacity: 0.8; }
         .accordion-header .arrow {
             font-size: 18px;
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            color: #a0aec0;
+            transition: transform 0.4s ease;
+            color: var(--text-muted);
         }
         .accordion-header .arrow.open { transform: rotate(180deg); }
         .accordion-body {
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s ease;
-            padding: 0 20px;
+            padding: 0 0 0 0;
         }
         .accordion-body.open {
-            max-height: 2000px;
-            padding: 0 20px 20px 20px;
+            max-height: 800px;
+            padding: 12px 0 0 0;
         }
 
-        /* ================================================================
-           КАРТОЧКИ И ИНДИКАТОРЫ
-        ================================================================ */
-        .card-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-        @media (max-width: 480px) { .card-grid { grid-template-columns: 1fr; } }
-
-        .stat-card {
-            background: #f7fafc;
-            border-radius: 12px;
-            padding: 14px 16px;
-            border: 1px solid #edf2f7;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .stat-card .label { font-size: 12px; color: #718096; font-weight: 500; text-transform: uppercase; letter-spacing: 0.3px; }
-        .stat-card .value { font-size: 22px; font-weight: 800; margin-top: 4px; }
-        .stat-card .sub { font-size: 13px; color: #4a5568; margin-top: 2px; }
-
-        /* Прогресс-бар */
         .progress-wrap {
-            margin-top: 10px;
-            background: #edf2f7;
+            background: var(--bg-secondary);
             border-radius: 20px;
-            height: 8px;
+            height: 10px;
             overflow: hidden;
-            position: relative;
+            margin-top: 6px;
+            border: 1px solid var(--border-color);
         }
         .progress-fill {
             height: 100%;
             border-radius: 20px;
             transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
-            background: #2b6cb0;
         }
-        .progress-fill.green { background: #48bb78; }
-        .progress-fill.yellow { background: #ecc94b; }
-        .progress-fill.red { background: #fc8181; }
+        .progress-fill.green { background: var(--green); }
+        .progress-fill.orange { background: var(--orange); }
+        .progress-fill.red { background: var(--red); }
 
-        /* ================================================================
-           КАРТОЧКИ-УВЕДОМЛЕНИЯ (Алерты)
-        ================================================================ */
-        .notification-card {
-            background: #ffffff;
-            border-radius: 14px;
-            padding: 14px 16px;
-            margin-bottom: 10px;
-            border: 1px solid #edf2f7;
+        .mine-detail {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-            transition: all 0.2s;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.02);
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 13px;
         }
-        .notification-card:hover { border-color: #cbd5e0; }
-        .notification-card .info { flex: 1; }
-        .notification-card .info .title { font-size: 14px; font-weight: 600; }
-        .notification-card .info .desc { font-size: 13px; color: #4a5568; margin-top: 2px; }
-        .badge {
-            display: inline-block;
-            padding: 2px 10px;
-            border-radius: 20px;
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 0.3px;
-            text-transform: uppercase;
-            white-space: nowrap;
-        }
-        .badge-critical { background: #fc8181; color: #fff; }
-        .badge-warning { background: #ecc94b; color: #fff; }
-        .badge-info { background: #63b3ed; color: #fff; }
-        .badge-success { background: #48bb78; color: #fff; }
-
-        .action-btn-sm {
-            padding: 6px 14px;
-            border: none;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            background: #2b6cb0;
-            color: #fff;
-            white-space: nowrap;
-        }
-        .action-btn-sm:hover { background: #2c5282; transform: scale(1.02); }
-        .action-btn-sm.danger { background: #fc8181; }
-        .action-btn-sm.danger:hover { background: #e53e3e; }
-        .action-btn-sm.success { background: #48bb78; }
-        .action-btn-sm.success:hover { background: #2f855a; }
+        .mine-detail:last-child { border-bottom: none; }
+        .mine-detail .name { color: var(--text-secondary); }
+        .mine-detail .stat { font-weight: 600; }
 
         /* ================================================================
-           КНОПКИ ДЕЙСТВИЙ ВНИЗУ
+           БЛОК 4: СКЛАД И СНАБЖЕНИЕ
         ================================================================ */
-        .action-bar {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 24px;
-            padding-top: 16px;
-            border-top: 2px solid #e2e8f0;
-        }
-        .action-btn {
-            padding: 14px;
-            border: none;
-            border-radius: 14px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            background: #2b6cb0;
-            color: #fff;
+        .fuel-indicator {
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 8px;
+            gap: 12px;
+            margin-top: 4px;
         }
-        .action-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(43,108,176,0.3); }
-        .action-btn.secondary { background: #edf2f7; color: #2d3748; }
-        .action-btn.secondary:hover { background: #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .fuel-bar {
+            flex: 1;
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            height: 8px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+        .fuel-bar .fill {
+            height: 100%;
+            border-radius: 20px;
+            background: var(--green);
+            transition: width 1s ease;
+        }
+        .fuel-bar .fill.warning { background: var(--orange); }
+        .fuel-bar .fill.danger { background: var(--red); }
 
-        .hidden { display: none !important; }
+        .stock-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 13px;
+        }
+        .stock-item:last-child { border-bottom: none; }
+        .stock-item .name { color: var(--text-secondary); }
+        .stock-item .qty { font-weight: 600; }
+        .stock-item .qty.low { color: var(--red); }
 
         /* ================================================================
-           АНИМАЦИЯ ПОЯВЛЕНИЯ
+           АДАПТИВ
         ================================================================ */
-        @keyframes fadeSlideUp {
-            from { opacity: 0; transform: translateY(12px); }
-            to { opacity: 1; transform: translateY(0); }
+        @media (max-width: 480px) {
+            .context-grid { grid-template-columns: 1fr 1fr; }
+            .weather-grid { grid-template-columns: 1fr 1fr; }
+            body { padding: 12px 12px 80px 12px; }
+            .card { padding: 14px 16px; }
         }
-        .accordion { animation: fadeSlideUp 0.4s ease forwards; }
-        .accordion:nth-child(2) { animation-delay: 0.05s; }
-        .accordion:nth-child(3) { animation-delay: 0.1s; }
 
         /* ================================================================
            ПЕЧАТЬ
         ================================================================ */
         @media print {
-            .role-panel, .action-bar, .action-btn-sm { display: none; }
-            .accordion-body { max-height: none !important; padding: 0 20px 20px 20px !important; }
+            .role-panel { display: none; }
+            .btn-danger-large { display: none; }
+            body { background: #fff; color: #000; }
+            .card { background: #f5f5f5; border-color: #ddd; }
+            .accordion-body { max-height: none !important; padding: 12px 0 0 0 !important; }
             .accordion-header .arrow { display: none; }
-            body { background: #fff; padding: 20px; }
+            .badge { background: #eee; color: #333; }
         }
     </style>
 </head>
 <body>
+
 <div class="dashboard" id="app">
 
-    <!-- Панель переключения ролей -->
+    <!-- ================================================================
+         ПАНЕЛЬ ПЕРЕКЛЮЧЕНИЯ РОЛЕЙ (ДЕМО)
+    ================================================================ -->
     <div class="role-panel">
         <button class="role-btn ceo active" onclick="switchRole('ceo')">👑 CEO</button>
         <button class="role-btn mechanic" onclick="switchRole('mechanic')">🔧 Механик</button>
         <button class="role-btn supply" onclick="switchRole('supply')">📦 Снабжение</button>
     </div>
 
-    <!-- Шапка -->
-    <div class="header">
-        <h1>⛏️ Africa Mining</h1>
-        <div class="subtitle">Ситуационный центр • <span id="currentTime"></span></div>
-        <div class="role-badge ceo" id="roleBadge">CEO</div>
-    </div>
+    <!-- ================================================================
+         БЛОК 1: ГЛОБАЛЬНЫЙ КОНТЕКСТ (ВСЕ РОЛИ)
+    ================================================================ -->
+    <div id="globalContext">
+        <!-- Погода -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title"><span class="icon">🌤️</span> Погода на рудниках</span>
+                <span class="badge badge-blue">Обновлено: сейчас</span>
+            </div>
+            <div class="weather-grid">
+                <div class="weather-item">
+                    <div class="temp">+28°C</div>
+                    <div class="desc">Колвези • Переменная облачность</div>
+                </div>
+                <div class="weather-item">
+                    <div class="temp">+26°C</div>
+                    <div class="desc">Лубумбаши • Ливень 🌧️</div>
+                </div>
+            </div>
+        </div>
 
-    <!-- Баннер алертов (виден всем) -->
-    <div class="alert-banner" id="alertBanner">
-        <h3>Критические алерты</h3>
-        <div id="alertList">
-            <div class="alert-item"><span class="status-dot" style="background:#fc8181;display:inline-block;width:8px;height:8px;border-radius:50%;"></span> Конго-3: Ремонт дробилки (остановка)</div>
-            <div class="alert-item"><span class="status-dot" style="background:#ecc94b;display:inline-block;width:8px;height:8px;border-radius:50%;"></span> Танзания: Задержка поставок ГСМ</div>
+        <!-- Биржа и курсы -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title"><span class="icon">📈</span> Рынки и курсы</span>
+                <span class="badge badge-green">LME</span>
+            </div>
+            <div class="context-grid">
+                <div class="card" style="border:1px solid var(--border-color);background:var(--bg-secondary);">
+                    <div class="label">Медь Cu</div>
+                    <div class="value">$9,240</div>
+                    <div class="change up">▲ +1.2%</div>
+                </div>
+                <div class="card" style="border:1px solid var(--border-color);background:var(--bg-secondary);">
+                    <div class="label">Кобальт Co</div>
+                    <div class="value">$28,500</div>
+                    <div class="change down">▼ -0.4%</div>
+                </div>
+                <div class="card" style="border:1px solid var(--border-color);background:var(--bg-secondary);">
+                    <div class="label">USD/CDF</div>
+                    <div class="value">2,850</div>
+                    <div class="change up">▲ +0.2%</div>
+                </div>
+                <div class="card" style="border:1px solid var(--border-color);background:var(--bg-secondary);">
+                    <div class="label">Кросс-курс</div>
+                    <div class="value">1.12</div>
+                    <div class="change" style="color:var(--text-muted);">стабилен</div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Контент дашборда -->
-    <div id="dashboardContent"></div>
+    <!-- ================================================================
+         БЛОК 2: КРИТИЧЕСКИЕ АЛЕРТЫ (CEO + МЕХАНИК)
+    ================================================================ -->
+    <div id="alertsBlock">
+        <div class="section-label">🚨 Критические алерты</div>
 
-    <!-- Кнопки действий -->
-    <div class="action-bar">
-        <button class="action-btn" id="callBtn">📞 Позвонить</button>
-        <button class="action-btn secondary" onclick="window.print()">📄 PDF-брифинг</button>
+        <div class="alert-card">
+            <div class="top">
+                <div>
+                    <div class="title">🆘 Геолог Иванов</div>
+                    <div class="desc">SOS, координаты -4.2, 15.3</div>
+                    <div class="time">📍 15 мин назад</div>
+                </div>
+                <span class="badge badge-red">КРИТИЧЕСКИЙ SOS</span>
+            </div>
+        </div>
+
+        <div class="alert-card" style="border-left-color:var(--orange);">
+            <div class="top">
+                <div>
+                    <div class="title">⛈️ Ливень на дороге N1</div>
+                    <div class="desc">Размыт участок, отгрузка задерживается</div>
+                    <div class="time">📍 42 мин назад</div>
+                </div>
+                <span class="badge badge-orange">ОПАСНОСТЬ</span>
+            </div>
+        </div>
+
+        <div class="alert-card">
+            <div class="top">
+                <div>
+                    <div class="title">🛑 Остановка фабрики №2</div>
+                    <div class="desc">Перегрев двигателя, ведутся работы</div>
+                    <div class="time">📍 1 час назад</div>
+                </div>
+                <span class="badge badge-red">ОСТАНОВКА</span>
+            </div>
+        </div>
+
+        <button class="btn-danger-large" onclick="sendTelegramData('sos_congo1')">
+            📢 Объявить сбой на Конго-1
+        </button>
     </div>
+
+    <!-- ================================================================
+         БЛОК 3: ПРОИЗВОДСТВО (ТОЛЬКО CEO)
+    ================================================================ -->
+    <div id="productionBlock">
+        <div class="section-label">⛏️ Производство и добыча</div>
+
+        <div class="card">
+            <!-- Аккордеон-заголовок -->
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+                <span style="font-weight:600;">📊 Выполнение плана</span>
+                <span class="arrow">▾</span>
+            </div>
+
+            <!-- Статичная часть (всегда видна) -->
+            <div style="margin-top:6px;">
+                <div class="flex-between">
+                    <span style="font-size:20px;font-weight:800;">75%</span>
+                    <span style="color:var(--text-muted);font-size:14px;">3 200 / 4 200 т</span>
+                </div>
+                <div class="progress-wrap">
+                    <div class="progress-fill orange" style="width:75%;"></div>
+                </div>
+            </div>
+
+            <!-- Аккордеон-тело (разворачивается) -->
+            <div class="accordion-body">
+                <div class="mine-detail">
+                    <span class="name">Конго-1 (Медь)</span>
+                    <span class="stat">1 800 / 2 400 т <span style="color:var(--orange);">(75%)</span></span>
+                </div>
+                <div class="mine-detail">
+                    <span class="name">Конго-2 (Кобальт)</span>
+                    <span class="stat">1 400 / 1 800 т <span style="color:var(--red);">(78%)</span></span>
+                </div>
+                <div class="mine-detail">
+                    <span class="name">Танзания (Золото)</span>
+                    <span class="stat">1 900 / 2 000 т <span style="color:var(--green);">(95%)</span></span>
+                </div>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:8px;">
+                    ⚡ Энергоснабжение: генераторы работают в штатном режиме
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================
+         БЛОК 4: СКЛАД И СНАБЖЕНИЕ (CEO + СНАБЖЕНИЕ)
+    ================================================================ -->
+    <div id="supplyBlock">
+        <div class="section-label">📦 Склад и снабжение</div>
+
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">⛽ Дизельное топливо</span>
+                <span class="badge badge-gold">Остаток: 4 дня</span>
+            </div>
+            <div class="fuel-indicator">
+                <span style="font-size:14px;font-weight:600;">24 500 л</span>
+                <div class="fuel-bar">
+                    <div class="fill warning" style="width:55%;"></div>
+                </div>
+                <span style="font-size:12px;color:var(--text-muted);">из 45 000 л</span>
+            </div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">
+                ⚠️ При текущем расходе (6 200 л/сут) хватит на 4 дня
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">📦 Запчасти и расходники</span>
+                <span class="badge badge-blue">Критических: 2</span>
+            </div>
+            <div class="stock-item">
+                <span class="name">Гидронасосы</span>
+                <span class="qty">4 шт</span>
+            </div>
+            <div class="stock-item">
+                <span class="name">Фильтры топливные</span>
+                <span class="qty low">2 шт ⚠️</span>
+            </div>
+            <div class="stock-item">
+                <span class="name">Цепи гусениц</span>
+                <span class="qty">3 компл.</span>
+            </div>
+            <div class="stock-item">
+                <span class="name">Смазочные материалы</span>
+                <span class="qty low">50 л ⚠️</span>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script>
     // ================================================================
-    // ДАННЫЕ
+    // ОТПРАВКА ДАННЫХ В ТЕЛЕГРАМ
     // ================================================================
-    const MINING_DATA = {
-        'Конго': {
-            mines: [
-                { name: 'Конго-1', ore: 'Медь', plan: 5000, actual: 4800, percent: 96, status: 'green', issues: [] },
-                { name: 'Конго-2', ore: 'Медь', plan: 4500, actual: 3200, percent: 71, status: 'yellow', issues: ['Сбой конвейера'] },
-                { name: 'Конго-3', ore: 'Кобальт', plan: 3000, actual: 1500, percent: 50, status: 'red', issues: ['Ремонт дробилки'] }
-            ],
-            phone: '+243XXXXXXXXX'
-        },
-        'Танзания': {
-            mines: [
-                { name: 'Танзания-1', ore: 'Золото', plan: 2000, actual: 1900, percent: 95, status: 'green', issues: [] },
-                { name: 'Танзания-2', ore: 'Золото', plan: 1800, actual: 1200, percent: 67, status: 'yellow', issues: ['Задержка поставок'] },
-                { name: 'Танзания-3', ore: 'Золото', plan: 1500, actual: 900, percent: 60, status: 'red', issues: ['Проблемы с вентиляцией'] }
-            ],
-            phone: '+255XXXXXXXXX'
-        },
-        'Мозамбик': {
-            mines: [
-                { name: 'Мозамбик-1', ore: 'Уголь', plan: 3000, actual: 2900, percent: 97, status: 'green', issues: [] },
-                { name: 'Мозамбик-2', ore: 'Уголь', plan: 2500, actual: 1800, percent: 72, status: 'yellow', issues: ['Перегрузка'] },
-                { name: 'Мозамбик-3', ore: 'Уголь', plan: 2000, actual: 800, percent: 40, status: 'red', issues: ['Авария на шахте'] }
-            ],
-            phone: '+258XXXXXXXXX'
+    function sendTelegramData(action) {
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.sendData(JSON.stringify({
+                action: action,
+                timestamp: new Date().toISOString()
+            }));
+            tg.showAlert('✅ Команда отправлена: ' + action);
+        } else {
+            alert('⚠️ Команда "' + action + '" отправлена (демо-режим)');
         }
-    };
-
-    const REPAIRS = [
-        { equipment: 'Экскаватор №3', issue: 'Замена гидронасоса', status: 'В работе', priority: 'high' },
-        { equipment: 'Бульдозер №7', issue: 'Ремонт гусеницы', status: 'Ожидание запчастей', priority: 'medium' },
-        { equipment: 'Самосвал №12', issue: 'Диагностика двигателя', status: 'Плановый', priority: 'low' }
-    ];
-
-    const WAREHOUSE = {
-        'Дизельное топливо': { value: 24500, unit: 'л', critical: 10000 },
-        'Взрывчатка': { value: 180, unit: 'кг', critical: 50 },
-        'Запчасти (компл.)': { value: 12, unit: 'шт', critical: 5 },
-        'Смазочные материалы': { value: 850, unit: 'л', critical: 300 }
-    };
-
-    let currentRole = 'ceo';
+    }
 
     // ================================================================
     // ПЕРЕКЛЮЧЕНИЕ РОЛЕЙ
     // ================================================================
+    let currentRole = 'ceo';
+
     function switchRole(role) {
         currentRole = role;
+
+        // Обновляем кнопки
         document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
         document.querySelector(`.role-btn.${role}`).classList.add('active');
-        const badge = document.getElementById('roleBadge');
-        badge.textContent = role === 'ceo' ? 'CEO' : role === 'mechanic' ? 'Механик' : 'Снабжение';
-        badge.className = 'role-badge ' + role;
-        renderDashboard(role);
-    }
 
-    // ================================================================
-    // ОТРИСОВКА ДАШБОРДА
-    // ================================================================
-    function renderDashboard(role) {
-        const container = document.getElementById('dashboardContent');
-        let html = '';
+        // Управление видимостью блоков
+        const alerts = document.getElementById('alertsBlock');
+        const production = document.getElementById('productionBlock');
+        const supply = document.getElementById('supplyBlock');
 
-        if (role === 'ceo') {
-            // ---- АККОРДЕОН 1: БЕЗОПАСНОСТЬ И ЧС ----
-            html += `
-                <div class="accordion">
-                    <div class="accordion-header" onclick="toggleAccordion(this)">
-                        <span class="title"><span class="icon">🚨</span> Безопасность и ЧС</span>
-                        <span class="arrow">▾</span>
-                    </div>
-                    <div class="accordion-body open">
-                        <div class="notification-card">
-                            <div class="info">
-                                <div class="title">🆘 Геолог Иванов</div>
-                                <div class="desc">SOS, координаты -4.2, 15.3 • 15 мин назад</div>
-                            </div>
-                            <div><span class="badge badge-critical">КРИТИЧЕСКИЙ SOS</span></div>
-                        </div>
-                        <div class="notification-card">
-                            <div class="info">
-                                <div class="title">⛈️ Тропический ливень</div>
-                                <div class="desc">Дорога N1 размыта • Отгрузка задерживается</div>
-                            </div>
-                            <div><span class="badge badge-warning">ОПАСНОСТЬ</span></div>
-                        </div>
-                        <div class="notification-card">
-                            <div class="info">
-                                <div class="title">🛑 Остановка фабрики №2</div>
-                                <div class="desc">Перегрев двигателя • 32 мин назад</div>
-                            </div>
-                            <div><span class="badge badge-critical">ОСТАНОВКА</span></div>
-                        </div>
-                        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
-                            <button class="action-btn-sm danger" onclick="alert('🚨 Сигнал SOS отправлен всем конвоям!')">🚨 Вызвать СБ</button>
-                            <button class="action-btn-sm" onclick="alert('📄 Запрос отчета у логистов отправлен')">📄 Запросить отчет у логистов</button>
-                        </div>
-                    </div>
-                </div>
-            `;
+        // Алерты видят CEO и Механик
+        alerts.style.display = (role === 'ceo' || role === 'mechanic') ? 'block' : 'none';
 
-            // ---- АККОРДЕОН 2: ГЛОБАЛЬНАЯ ДОБЫЧА ----
-            let totalPlan = 0, totalActual = 0;
-            Object.values(MINING_DATA).forEach(c => c.mines.forEach(m => { totalPlan += m.plan; totalActual += m.actual; }));
-            const totalPercent = totalPlan ? Math.round(totalActual/totalPlan*100) : 0;
-            const progressClass = totalPercent >= 90 ? 'green' : totalPercent >= 75 ? 'yellow' : 'red';
+        // Производство видит только CEO
+        production.style.display = (role === 'ceo') ? 'block' : 'none';
 
-            html += `
-                <div class="accordion">
-                    <div class="accordion-header" onclick="toggleAccordion(this)">
-                        <span class="title"><span class="icon">⛏️</span> Глобальная добыча</span>
-                        <span class="arrow">▾</span>
-                    </div>
-                    <div class="accordion-body open">
-                        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
-                            <span style="font-size:28px;font-weight:800;">${totalActual.toLocaleString()}</span>
-                            <span style="color:#718096;">из ${totalPlan.toLocaleString()} т</span>
-                        </div>
-                        <div style="font-size:14px;color:#4a5568;">Выполнение плана: ${totalPercent}%</div>
-                        <div class="progress-wrap">
-                            <div class="progress-fill ${progressClass}" style="width:${Math.min(totalPercent,100)}%;"></div>
-                        </div>
-                        <div class="card-grid" style="margin-top:14px;">
-                            ${Object.keys(MINING_DATA).map(country => {
-                                const c = MINING_DATA[country];
-                                const p = c.mines.reduce((s,m) => s + m.plan, 0);
-                                const a = c.mines.reduce((s,m) => s + m.actual, 0);
-                                const pc = p ? Math.round(a/p*100) : 0;
-                                const cls = pc >= 90 ? 'green' : pc >= 75 ? 'yellow' : 'red';
-                                return `
-                                    <div class="stat-card">
-                                        <div class="label">🇨🇩 ${country}</div>
-                                        <div class="value">${a.toLocaleString()}</div>
-                                        <div class="sub">${pc}% от плана</div>
-                                        <div class="progress-wrap" style="height:4px;margin-top:4px;">
-                                            <div class="progress-fill ${cls}" style="width:${Math.min(pc,100)}%;"></div>
-                                        </div>
-                                    </div>
-                                `;
-                            }).join('')}
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            // ---- АККОРДЕОН 3: ЭКОНОМИКА И СБЫТ ----
-            const copperPrice = (Math.random() * 600 + 8900).toFixed(0);
-            const tungstenPrice = (Math.random() * 3000 + 42000).toFixed(0);
-            const stockValue = (Math.random() * 4000000 + 12000000).toFixed(0);
-            const fuel = (Math.random() * 15000 + 15000).toFixed(0);
-
-            html += `
-                <div class="accordion">
-                    <div class="accordion-header" onclick="toggleAccordion(this)">
-                        <span class="title"><span class="icon">💰</span> Экономика и сбыт</span>
-                        <span class="arrow">▾</span>
-                    </div>
-                    <div class="accordion-body open">
-                        <div class="card-grid">
-                            <div class="stat-card"><div class="label">Медь (LME)</div><div class="value">$${copperPrice}</div><div class="sub">за тонну</div></div>
-                            <div class="stat-card"><div class="label">Вольфрам (LME)</div><div class="value">$${tungstenPrice}</div><div class="sub">за тонну</div></div>
-                            <div class="stat-card"><div class="label">💰 Склад (концентрат)</div><div class="value">$${stockValue}</div><div class="sub">оценка стоимости</div></div>
-                            <div class="stat-card"><div class="label">⛽ Остаток дизеля</div><div class="value">${fuel} л</div><div class="sub">хватит на ${Math.round(fuel/8500)} дня</div></div>
-                        </div>
-                        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
-                            <button class="action-btn-sm success" onclick="alert('📊 Прогноз цен на неделю отправлен в Telegram')">📊 Прогноз цен</button>
-                            <button class="action-btn-sm" onclick="alert('📄 Отчет по себестоимости готов')">📄 Себестоимость</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        // ---- РЕЖИМ МЕХАНИК ----
-        if (role === 'mechanic') {
-            html += `
-                <div class="accordion">
-                    <div class="accordion-header" onclick="toggleAccordion(this)">
-                        <span class="title"><span class="icon">🔧</span> Управление ремонтами</span>
-                        <span class="arrow">▾</span>
-                    </div>
-                    <div class="accordion-body open">
-                        ${REPAIRS.map(r => {
-                            const badge = r.priority === 'high' ? 'badge-critical' : r.priority === 'medium' ? 'badge-warning' : 'badge-info';
-                            const label = r.priority === 'high' ? 'КРИТИЧЕСКИЙ' : r.priority === 'medium' ? 'СРЕДНИЙ' : 'ПЛАНОВЫЙ';
-                            return `
-                                <div class="notification-card">
-                                    <div class="info">
-                                        <div class="title">🛠️ ${r.equipment}</div>
-                                        <div class="desc">${r.issue} • Статус: ${r.status}</div>
-                                    </div>
-                                    <div><span class="badge ${badge}">${label}</span></div>
-                                </div>
-                            `;
-                        }).join('')}
-                        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
-                            <button class="action-btn-sm danger" onclick="alert('🚨 АВАРИЙНАЯ ОСТАНОВКА ВСЕХ РАБОТ!')">🚨 Аварийная остановка</button>
-                            <button class="action-btn-sm" onclick="alert('📞 Ремонтная бригада вызвана')">📞 Вызвать бригаду</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        // ---- РЕЖИМ СНАБЖЕНИЕ ----
-        if (role === 'supply') {
-            html += `
-                <div class="accordion">
-                    <div class="accordion-header" onclick="toggleAccordion(this)">
-                        <span class="title"><span class="icon">📦</span> Управление складом</span>
-                        <span class="arrow">▾</span>
-                    </div>
-                    <div class="accordion-body open">
-                        ${Object.keys(WAREHOUSE).map(name => {
-                            const w = WAREHOUSE[name];
-                            const low = w.value < w.critical;
-                            return `
-                                <div class="notification-card" style="${low ? 'border-left:4px solid #fc8181;' : ''}">
-                                    <div class="info">
-                                        <div class="title">${name}</div>
-                                        <div class="desc">${w.value.toLocaleString()} ${w.unit} ${low ? '⚠️ Критический запас' : ''}</div>
-                                    </div>
-                                    <div><span class="badge ${low ? 'badge-critical' : 'badge-success'}">${low ? 'СРОЧНО' : 'НОРМА'}</span></div>
-                                </div>
-                            `;
-                        }).join('')}
-                        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
-                            <button class="action-btn-sm danger" onclick="alert('📞 Запрос на пополнение склада отправлен!')">📞 Заказать поставку</button>
-                            <button class="action-btn-sm" onclick="alert('📊 Отчет по остаткам отправлен')">📊 Отчет по складу</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        container.innerHTML = html;
-
-        // Настройка кнопки звонка
-        const callBtn = document.getElementById('callBtn');
-        if (role === 'ceo') {
-            callBtn.textContent = '📞 Связаться с директорами';
-            callBtn.onclick = () => alert('📞 Звонок директорам... (интеграция с VoIP)');
-        } else if (role === 'mechanic') {
-            callBtn.textContent = '📞 Вызвать ремонтную бригаду';
-            callBtn.onclick = () => alert('📞 Ремонтная бригада вызвана!');
-        } else {
-            callBtn.textContent = '📞 Связаться со снабжением';
-            callBtn.onclick = () => alert('📞 Запрос на пополнение склада отправлен!');
-        }
+        // Склад видят CEO и Снабжение
+        supply.style.display = (role === 'ceo' || role === 'supply') ? 'block' : 'none';
     }
 
     // ================================================================
     // АККОРДЕОН
     // ================================================================
     function toggleAccordion(header) {
-        const body = header.nextElementSibling;
+        const body = header.nextElementSibling.nextElementSibling; // пропускаем статичную часть
+        // Ищем следующий элемент с классом accordion-body
+        let el = header.parentElement.querySelector('.accordion-body');
+        if (!el) return;
+
         const arrow = header.querySelector('.arrow');
-        if (body.classList.contains('open')) {
-            body.classList.remove('open');
+        if (el.classList.contains('open')) {
+            el.classList.remove('open');
             arrow.classList.remove('open');
         } else {
-            body.classList.add('open');
+            el.classList.add('open');
             arrow.classList.add('open');
         }
     }
@@ -632,12 +630,32 @@
     // ================================================================
     function init() {
         const tg = window.Telegram?.WebApp;
-        if (tg) tg.ready();
-        document.getElementById('currentTime').textContent = new Date().toLocaleTimeString('ru', { hour: '2-digit', minute: '2-digit' });
+        if (tg) {
+            tg.ready();
+            // Обработка данных из бота
+            tg.onEvent('mainButtonClicked', () => {
+                console.log('Main button clicked');
+            });
+        }
+
+        // По умолчанию — CEO
         switchRole('ceo');
+
+        // Автоматически открываем аккордеон при загрузке
+        setTimeout(() => {
+            const firstAccordion = document.querySelector('.accordion-header');
+            if (firstAccordion) {
+                const body = firstAccordion.parentElement.querySelector('.accordion-body');
+                if (body) {
+                    body.classList.add('open');
+                    firstAccordion.querySelector('.arrow').classList.add('open');
+                }
+            }
+        }, 300);
     }
 
     document.addEventListener('DOMContentLoaded', init);
 </script>
+
 </body>
 </html>
