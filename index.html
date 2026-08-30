@@ -7,7 +7,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         /* ================================================================
-           БАЗОВЫЕ ПЕРЕМЕННЫЕ И СБРОС
+           БАЗОВЫЕ ПЕРЕМЕННЫЕ — КОСМИЧЕСКИЙ ТЕМНЫЙ ДИЗАЙН
         ================================================================ */
         * {
             margin: 0;
@@ -16,27 +16,31 @@
         }
 
         :root {
-            --bg-primary: #0b0e14;
-            --bg-secondary: #141a24;
-            --bg-card: #1c2533;
-            --bg-card-hover: #253040;
-            --text-primary: #f0f4fa;
-            --text-secondary: #94a3b8;
-            --text-muted: #64748b;
-            --border-color: #2a3548;
-            --shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            --bg-primary: #070a0f;
+            --bg-secondary: #0d1320;
+            --bg-card: #141c2b;
+            --bg-card-hover: #1a2638;
+            --text-primary: #eef2f8;
+            --text-secondary: #8899b4;
+            --text-muted: #4a5a72;
+            --border-color: #1e2a3d;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.7);
             --radius: 16px;
             --radius-sm: 10px;
             --green: #4ade80;
-            --green-bg: rgba(74, 222, 128, 0.12);
+            --green-bg: rgba(74, 222, 128, 0.10);
             --red: #f87171;
-            --red-bg: rgba(248, 113, 113, 0.12);
+            --red-bg: rgba(248, 113, 113, 0.10);
             --orange: #fb923c;
-            --orange-bg: rgba(251, 146, 60, 0.12);
+            --orange-bg: rgba(251, 146, 60, 0.10);
             --blue: #60a5fa;
-            --blue-bg: rgba(96, 165, 250, 0.12);
+            --blue-bg: rgba(96, 165, 250, 0.10);
             --gold: #fbbf24;
-            --gold-bg: rgba(251, 191, 36, 0.12);
+            --gold-bg: rgba(251, 191, 36, 0.10);
+            --neon-green: 0 0 20px rgba(74, 222, 128, 0.25);
+            --neon-red: 0 0 20px rgba(248, 113, 113, 0.25);
+            --neon-orange: 0 0 20px rgba(251, 146, 60, 0.25);
+            --neon-blue: 0 0 20px rgba(96, 165, 250, 0.20);
         }
 
         body {
@@ -49,9 +53,16 @@
         }
 
         .dashboard {
-            max-width: 600px;
+            max-width: 640px;
             margin: 0 auto;
         }
+
+        /* ================================================================
+           СКРОЛЛБАР
+        ================================================================ */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: var(--bg-secondary); }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
 
         /* ================================================================
            ПАНЕЛЬ ПЕРЕКЛЮЧЕНИЯ РОЛЕЙ
@@ -81,22 +92,24 @@
         .role-btn.active {
             background: var(--blue);
             color: #fff;
-            box-shadow: 0 4px 16px rgba(96, 165, 250, 0.25);
+            box-shadow: var(--neon-blue);
         }
-        .role-btn.ceo.active { background: var(--green); color: #0b0e14; }
-        .role-btn.mechanic.active { background: var(--gold); color: #0b0e14; }
-        .role-btn.supply.active { background: var(--blue); color: #fff; }
+        .role-btn.ceo.active { background: var(--green); color: #070a0f; box-shadow: var(--neon-green); }
+        .role-btn.mechanic.active { background: var(--gold); color: #070a0f; box-shadow: 0 0 20px rgba(251, 191, 36, 0.25); }
+        .role-btn.supply.active { background: var(--blue); color: #fff; box-shadow: var(--neon-blue); }
 
         /* ================================================================
            ОБЩИЕ КОМПОНЕНТЫ
         ================================================================ */
         .section-label {
-            font-size: 11px;
-            font-weight: 600;
+            font-size: 10px;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
             color: var(--text-muted);
-            margin-bottom: 12px;
+            margin-bottom: 14px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .card {
@@ -106,41 +119,61 @@
             margin-bottom: 16px;
             border: 1px solid var(--border-color);
             transition: all 0.3s ease;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
         }
-        .card:hover { border-color: #3a4a60; }
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+        }
+        .card:hover { border-color: #2a3a55; }
 
         .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 6px;
         }
         .card-title {
             font-size: 15px;
             font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        .card-title .icon { margin-right: 8px; }
+        .card-title .icon { font-size: 18px; }
 
         .badge {
             display: inline-block;
             padding: 2px 12px;
             border-radius: 20px;
-            font-size: 10px;
+            font-size: 9px;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.3px;
+            letter-spacing: 0.5px;
         }
-        .badge-red { background: var(--red-bg); color: var(--red); }
-        .badge-orange { background: var(--orange-bg); color: var(--orange); }
-        .badge-green { background: var(--green-bg); color: var(--green); }
-        .badge-blue { background: var(--blue-bg); color: var(--blue); }
-        .badge-gold { background: var(--gold-bg); color: var(--gold); }
+        .badge-red { background: var(--red-bg); color: var(--red); box-shadow: var(--neon-red); }
+        .badge-orange { background: var(--orange-bg); color: var(--orange); box-shadow: var(--neon-orange); }
+        .badge-green { background: var(--green-bg); color: var(--green); box-shadow: var(--neon-green); }
+        .badge-blue { background: var(--blue-bg); color: var(--blue); box-shadow: var(--neon-blue); }
+        .badge-gold { background: var(--gold-bg); color: var(--gold); box-shadow: 0 0 20px rgba(251, 191, 36, 0.15); }
 
         .flex-between {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
         }
+        .flex-start { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
         .mt-8 { margin-top: 8px; }
         .mt-12 { margin-top: 12px; }
@@ -149,17 +182,19 @@
         .hidden { display: none !important; }
 
         /* ================================================================
-           БЛОК 1: ГЛОБАЛЬНЫЙ КОНТЕКСТ (ВИДЯТ ВСЕ)
+           БЛОК 1: ГЛОБАЛЬНЫЙ КОНТЕКСТ
         ================================================================ */
+        #block-weather, #block-markets { transition: all 0.3s ease; }
+
         .context-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
         }
-        .context-grid .card { margin-bottom: 0; padding: 14px 16px; }
-        .context-grid .card .value { font-size: 18px; font-weight: 700; }
-        .context-grid .card .label { font-size: 11px; color: var(--text-muted); }
-        .context-grid .card .change { font-size: 12px; font-weight: 600; }
+        .context-grid .card { margin-bottom: 0; padding: 12px 14px; }
+        .context-grid .card .value { font-size: 17px; font-weight: 700; }
+        .context-grid .card .label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px; }
+        .context-grid .card .change { font-size: 11px; font-weight: 600; }
         .context-grid .card .change.up { color: var(--green); }
         .context-grid .card .change.down { color: var(--red); }
 
@@ -171,72 +206,108 @@
         }
         .weather-item {
             background: var(--bg-secondary);
-            padding: 8px 12px;
+            padding: 10px 14px;
             border-radius: var(--radius-sm);
             border: 1px solid var(--border-color);
             font-size: 13px;
         }
-        .weather-item .temp { font-weight: 700; }
-        .weather-item .desc { color: var(--text-secondary); font-size: 12px; }
+        .weather-item .temp { font-weight: 700; font-size: 16px; }
+        .weather-item .desc { color: var(--text-secondary); font-size: 11px; margin-top: 2px; }
+        .weather-item .location { color: var(--text-muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px; }
 
         /* ================================================================
-           БЛОК 2: КРИТИЧЕСКИЕ АЛЕРТЫ
+           БЛОК 2: АЛЕРТЫ
         ================================================================ */
         .alert-card {
             background: var(--bg-card);
             border-radius: var(--radius);
-            padding: 16px 18px;
-            margin-bottom: 12px;
-            border-left: 4px solid var(--red);
+            padding: 14px 16px;
+            margin-bottom: 10px;
             border: 1px solid var(--border-color);
             border-left-width: 4px;
             transition: all 0.3s ease;
+            box-shadow: var(--shadow);
         }
-        .alert-card:hover { border-color: #4a2a2a; }
+        .alert-card.critical { border-left-color: var(--red); }
+        .alert-card.warning { border-left-color: var(--orange); }
+        .alert-card.success { border-left-color: var(--green); }
+        .alert-card:hover { border-color: #2a3a55; }
         .alert-card .top {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
             gap: 12px;
         }
-        .alert-card .title {
-            font-size: 14px;
-            font-weight: 600;
-        }
-        .alert-card .desc {
-            font-size: 13px;
-            color: var(--text-secondary);
-            margin-top: 2px;
-        }
-        .alert-card .time {
-            font-size: 11px;
-            color: var(--text-muted);
-            margin-top: 4px;
-        }
+        .alert-card .title { font-size: 14px; font-weight: 600; }
+        .alert-card .desc { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+        .alert-card .time { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
 
         .btn-danger-large {
             display: block;
             width: 100%;
             padding: 16px;
             background: var(--red);
-            color: #0b0e14;
+            color: #070a0f;
             border: none;
             border-radius: var(--radius-sm);
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
             margin-top: 8px;
             text-align: center;
+            box-shadow: var(--neon-red);
         }
         .btn-danger-large:hover {
             background: #fca5a5;
             transform: scale(1.01);
-            box-shadow: 0 4px 24px rgba(248, 113, 113, 0.3);
+            box-shadow: 0 0 32px rgba(248, 113, 113, 0.5);
         }
 
         /* ================================================================
-           БЛОК 3: ПРОИЗВОДСТВО (АККОРДЕОН, ТОЛЬКО CEO)
+           БЛОК 3: ТАЙМЛАЙН ВЗРЫВОВ
+        ================================================================ */
+        .timeline {
+            position: relative;
+            padding-left: 24px;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 6px;
+            top: 4px;
+            bottom: 4px;
+            width: 2px;
+            background: var(--border-color);
+        }
+        .timeline-item {
+            position: relative;
+            padding: 10px 0 10px 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .timeline-item:last-child { border-bottom: none; }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -22px;
+            top: 14px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--blue);
+            border: 2px solid var(--bg-primary);
+            box-shadow: var(--neon-blue);
+        }
+        .timeline-item.critical::before { background: var(--red); box-shadow: var(--neon-red); }
+        .timeline-item.success::before { background: var(--green); box-shadow: var(--neon-green); }
+        .timeline-item.warning::before { background: var(--orange); box-shadow: var(--neon-orange); }
+        .timeline-item .time { font-size: 11px; color: var(--text-muted); font-weight: 600; }
+        .timeline-item .event { font-size: 13px; font-weight: 500; margin-top: 2px; }
+        .timeline-item .detail { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+        .timeline-item .badge { margin-top: 4px; }
+
+        /* ================================================================
+           БЛОК 4: ПРОИЗВОДСТВО (АККОРДЕОН)
         ================================================================ */
         .accordion {
             overflow: hidden;
@@ -264,14 +335,14 @@
             padding: 0 0 0 0;
         }
         .accordion-body.open {
-            max-height: 800px;
-            padding: 12px 0 0 0;
+            max-height: 1200px;
+            padding: 14px 0 0 0;
         }
 
         .progress-wrap {
             background: var(--bg-secondary);
             border-radius: 20px;
-            height: 10px;
+            height: 8px;
             overflow: hidden;
             margin-top: 6px;
             border: 1px solid var(--border-color);
@@ -279,34 +350,89 @@
         .progress-fill {
             height: 100%;
             border-radius: 20px;
-            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .progress-fill.green { background: var(--green); }
-        .progress-fill.orange { background: var(--orange); }
-        .progress-fill.red { background: var(--red); }
+        .progress-fill.green { background: var(--green); box-shadow: var(--neon-green); }
+        .progress-fill.orange { background: var(--orange); box-shadow: var(--neon-orange); }
+        .progress-fill.red { background: var(--red); box-shadow: var(--neon-red); }
 
-        .mine-detail {
+        .mine-metric {
             display: flex;
             justify-content: space-between;
             padding: 8px 0;
             border-bottom: 1px solid var(--border-color);
             font-size: 13px;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 4px;
         }
-        .mine-detail:last-child { border-bottom: none; }
-        .mine-detail .name { color: var(--text-secondary); }
-        .mine-detail .stat { font-weight: 600; }
+        .mine-metric:last-child { border-bottom: none; }
+        .mine-metric .name { color: var(--text-secondary); font-size: 12px; }
+        .mine-metric .stat { font-weight: 600; font-size: 13px; }
+        .mine-metric .stat.green { color: var(--green); }
+        .mine-metric .stat.orange { color: var(--orange); }
+        .mine-metric .stat.red { color: var(--red); }
+        .mine-metric .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+        .status-dot.green { background: var(--green); box-shadow: var(--neon-green); }
+        .status-dot.orange { background: var(--orange); box-shadow: var(--neon-orange); }
+        .status-dot.red { background: var(--red); box-shadow: var(--neon-red); }
+
+        .btn-action {
+            display: inline-block;
+            padding: 10px 20px;
+            background: var(--blue);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 8px;
+            text-align: center;
+            box-shadow: var(--neon-blue);
+        }
+        .btn-action:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 28px rgba(96, 165, 250, 0.4);
+        }
+        .btn-action.gold {
+            background: var(--gold);
+            color: #070a0f;
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.2);
+        }
+        .btn-action.gold:hover { box-shadow: 0 0 32px rgba(251, 191, 36, 0.4); }
+        .btn-action.danger {
+            background: var(--red);
+            color: #070a0f;
+            box-shadow: var(--neon-red);
+        }
+        .btn-action.danger:hover { box-shadow: 0 0 32px rgba(248, 113, 113, 0.5); }
+        .btn-action:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
 
         /* ================================================================
-           БЛОК 4: СКЛАД И СНАБЖЕНИЕ
+           БЛОК 5: СНАБЖЕНИЕ
         ================================================================ */
         .fuel-indicator {
             display: flex;
             align-items: center;
             gap: 12px;
             margin-top: 4px;
+            flex-wrap: wrap;
         }
         .fuel-bar {
             flex: 1;
+            min-width: 80px;
             background: var(--bg-secondary);
             border-radius: 20px;
             height: 8px;
@@ -316,11 +442,11 @@
         .fuel-bar .fill {
             height: 100%;
             border-radius: 20px;
-            background: var(--green);
             transition: width 1s ease;
         }
-        .fuel-bar .fill.warning { background: var(--orange); }
-        .fuel-bar .fill.danger { background: var(--red); }
+        .fuel-bar .fill.green { background: var(--green); box-shadow: var(--neon-green); }
+        .fuel-bar .fill.orange { background: var(--orange); box-shadow: var(--neon-orange); }
+        .fuel-bar .fill.red { background: var(--red); box-shadow: var(--neon-red); }
 
         .stock-item {
             display: flex;
@@ -328,11 +454,67 @@
             padding: 8px 0;
             border-bottom: 1px solid var(--border-color);
             font-size: 13px;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 4px;
         }
         .stock-item:last-child { border-bottom: none; }
-        .stock-item .name { color: var(--text-secondary); }
-        .stock-item .qty { font-weight: 600; }
+        .stock-item .name { color: var(--text-secondary); font-size: 12px; }
+        .stock-item .qty { font-weight: 600; font-size: 13px; }
         .stock-item .qty.low { color: var(--red); }
+        .stock-item .qty.ok { color: var(--green); }
+        .stock-item .qty.warning { color: var(--orange); }
+
+        .supply-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+        .supply-actions .btn-action { margin-top: 0; }
+
+        /* ================================================================
+           ИНВЕСТОРСКИЙ ИНДИКАТОР
+        ================================================================ */
+        .investor-sentiment {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .investor-sentiment.bull { background: var(--green-bg); color: var(--green); box-shadow: var(--neon-green); }
+        .investor-sentiment.bear { background: var(--red-bg); color: var(--red); box-shadow: var(--neon-red); }
+
+        /* ================================================================
+           ДЕМО-ОКНО
+        ================================================================ */
+        .demo-toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 16px 24px;
+            box-shadow: var(--shadow), var(--neon-green);
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 999;
+            animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            max-width: 90%;
+            text-align: center;
+        }
+        .demo-toast .emoji { font-size: 24px; margin-right: 10px; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
 
         /* ================================================================
            АДАПТИВ
@@ -342,19 +524,20 @@
             .weather-grid { grid-template-columns: 1fr 1fr; }
             body { padding: 12px 12px 80px 12px; }
             .card { padding: 14px 16px; }
+            .role-btn { font-size: 10px; padding: 8px 4px; }
+            .card-title { font-size: 13px; }
         }
 
-        /* ================================================================
-           ПЕЧАТЬ
-        ================================================================ */
         @media print {
             .role-panel { display: none; }
-            .btn-danger-large { display: none; }
+            .btn-danger-large, .btn-action, .supply-actions .btn-action { display: none; }
             body { background: #fff; color: #000; }
-            .card { background: #f5f5f5; border-color: #ddd; }
-            .accordion-body { max-height: none !important; padding: 12px 0 0 0 !important; }
+            .card { background: #f5f5f5; border-color: #ddd; box-shadow: none; }
+            .accordion-body { max-height: none !important; padding: 14px 0 0 0 !important; }
             .accordion-header .arrow { display: none; }
             .badge { background: #eee; color: #333; }
+            .demo-toast { display: none; }
+            .investor-sentiment { background: #eee !important; color: #333 !important; }
         }
     </style>
 </head>
@@ -363,12 +546,12 @@
 <div class="dashboard" id="app">
 
     <!-- ================================================================
-         ПАНЕЛЬ ПЕРЕКЛЮЧЕНИЯ РОЛЕЙ (ДЕМО)
+         ПАНЕЛЬ ПЕРЕКЛЮЧЕНИЯ РОЛЕЙ
     ================================================================ -->
     <div class="role-panel">
-        <button class="role-btn ceo active" onclick="switchRole('ceo')">👑 CEO</button>
-        <button class="role-btn mechanic" onclick="switchRole('mechanic')">🔧 Механик</button>
-        <button class="role-btn supply" onclick="switchRole('supply')">📦 Снабжение</button>
+        <button class="role-btn ceo active" onclick="switchRole('ceo', this)">👑 CEO</button>
+        <button class="role-btn mechanic" onclick="switchRole('mechanic', this)">🔧 Механик</button>
+        <button class="role-btn supply" onclick="switchRole('supply', this)">📦 Снабжение</button>
     </div>
 
     <!-- ================================================================
@@ -376,25 +559,27 @@
     ================================================================ -->
     <div id="globalContext">
         <!-- Погода -->
-        <div class="card">
+        <div class="card" id="block-weather">
             <div class="card-header">
                 <span class="card-title"><span class="icon">🌤️</span> Погода на рудниках</span>
                 <span class="badge badge-blue">Обновлено: сейчас</span>
             </div>
             <div class="weather-grid">
                 <div class="weather-item">
+                    <div class="location">📍 Frontier (Лубумбаши)</div>
                     <div class="temp">+28°C</div>
-                    <div class="desc">Колвези • Переменная облачность</div>
+                    <div class="desc">Переменная облачность</div>
                 </div>
                 <div class="weather-item">
+                    <div class="location">📍 Metalkol (Колвези)</div>
                     <div class="temp">+26°C</div>
-                    <div class="desc">Лубумбаши • Ливень 🌧️</div>
+                    <div class="desc">Ливень 🌧️</div>
                 </div>
             </div>
         </div>
 
         <!-- Биржа и курсы -->
-        <div class="card">
+        <div class="card" id="block-markets">
             <div class="card-header">
                 <span class="card-title"><span class="icon">📈</span> Рынки и курсы</span>
                 <span class="badge badge-green">LME</span>
@@ -427,13 +612,13 @@
     <!-- ================================================================
          БЛОК 2: КРИТИЧЕСКИЕ АЛЕРТЫ (CEO + МЕХАНИК)
     ================================================================ -->
-    <div id="alertsBlock">
+    <div id="block-alerts">
         <div class="section-label">🚨 Критические алерты</div>
 
-        <div class="alert-card">
+        <div class="alert-card critical">
             <div class="top">
                 <div>
-                    <div class="title">🆘 Геолог Иванов</div>
+                    <div class="title">🆘 Геолог Иванов (Frontier)</div>
                     <div class="desc">SOS, координаты -4.2, 15.3</div>
                     <div class="time">📍 15 мин назад</div>
                 </div>
@@ -441,10 +626,10 @@
             </div>
         </div>
 
-        <div class="alert-card" style="border-left-color:var(--orange);">
+        <div class="alert-card warning">
             <div class="top">
                 <div>
-                    <div class="title">⛈️ Ливень на дороге N1</div>
+                    <div class="title">⛈️ Ливень на дороге N1 (Колвези)</div>
                     <div class="desc">Размыт участок, отгрузка задерживается</div>
                     <div class="time">📍 42 мин назад</div>
                 </div>
@@ -452,10 +637,10 @@
             </div>
         </div>
 
-        <div class="alert-card">
+        <div class="alert-card critical">
             <div class="top">
                 <div>
-                    <div class="title">🛑 Остановка фабрики №2</div>
+                    <div class="title">🛑 Остановка фабрики №2 (Metalkol)</div>
                     <div class="desc">Перегрев двигателя, ведутся работы</div>
                     <div class="time">📍 1 час назад</div>
                 </div>
@@ -463,99 +648,225 @@
             </div>
         </div>
 
-        <button class="btn-danger-large" onclick="sendTelegramData('sos_congo1')">
-            📢 Объявить сбой на Конго-1
+        <button class="btn-danger-large" onclick="sendTelegramData('sos_frontier')">
+            📢 Объявить сбой на Frontier
         </button>
     </div>
 
     <!-- ================================================================
-         БЛОК 3: ПРОИЗВОДСТВО (ТОЛЬКО CEO)
+         БЛОК 3: ТАЙМЛАЙН ВЗРЫВОВ (CEO + МЕХАНИК)
     ================================================================ -->
-    <div id="productionBlock">
-        <div class="section-label">⛏️ Производство и добыча</div>
+    <div id="block-blast">
+        <div class="section-label">💥 Суточный график взрывов и вскрыши</div>
 
         <div class="card">
-            <!-- Аккордеон-заголовок -->
-            <div class="accordion-header" onclick="toggleAccordion(this)">
-                <span style="font-weight:600;">📊 Выполнение плана</span>
-                <span class="arrow">▾</span>
+            <div class="card-header">
+                <span class="card-title"><span class="icon">📍</span> Frontier (Лубумбаши)</span>
+                <span class="badge badge-green">Активно</span>
             </div>
-
-            <!-- Статичная часть (всегда видна) -->
-            <div style="margin-top:6px;">
-                <div class="flex-between">
-                    <span style="font-size:20px;font-weight:800;">75%</span>
-                    <span style="color:var(--text-muted);font-size:14px;">3 200 / 4 200 т</span>
+            <div class="timeline">
+                <div class="timeline-item success">
+                    <div class="time">06:00 – 13:00</div>
+                    <div class="event">Вскрышные работы</div>
+                    <div class="detail">План: 12 000 м³ / Факт: 11 800 м³ ✅</div>
                 </div>
-                <div class="progress-wrap">
-                    <div class="progress-fill orange" style="width:75%;"></div>
+                <div class="timeline-item warning">
+                    <div class="time">14:30</div>
+                    <div class="event">⚠️ ЭВАКУАЦИЯ ТЕХНИКИ</div>
+                    <div class="detail">Причина: усиление ливня</div>
+                </div>
+                <div class="timeline-item success">
+                    <div class="time">15:00</div>
+                    <div class="event">💥 МАССОВЫЙ ВЗРЫВ СЕКТОР С-3</div>
+                    <div class="detail">Статус: <span style="color:var(--green);">УСПЕШНО</span></div>
+                    <span class="badge badge-green">Выполнено</span>
                 </div>
             </div>
+        </div>
 
-            <!-- Аккордеон-тело (разворачивается) -->
-            <div class="accordion-body">
-                <div class="mine-detail">
-                    <span class="name">Конго-1 (Медь)</span>
-                    <span class="stat">1 800 / 2 400 т <span style="color:var(--orange);">(75%)</span></span>
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title"><span class="icon">📍</span> Metalkol (Колвези)</span>
+                <span class="badge badge-orange">В процессе</span>
+            </div>
+            <div class="timeline">
+                <div class="timeline-item warning">
+                    <div class="time">11:00</div>
+                    <div class="event">Вскрыша горизонта -120м</div>
+                    <div class="detail">Статус: <span style="color:var(--orange);">В процессе</span></div>
                 </div>
-                <div class="mine-detail">
-                    <span class="name">Конго-2 (Кобальт)</span>
-                    <span class="stat">1 400 / 1 800 т <span style="color:var(--red);">(78%)</span></span>
-                </div>
-                <div class="mine-detail">
-                    <span class="name">Танзания (Золото)</span>
-                    <span class="stat">1 900 / 2 000 т <span style="color:var(--green);">(95%)</span></span>
-                </div>
-                <div style="font-size:12px;color:var(--text-muted);margin-top:8px;">
-                    ⚡ Энергоснабжение: генераторы работают в штатном режиме
+                <div class="timeline-item critical">
+                    <div class="time">17:45</div>
+                    <div class="event">💥 Плановый взрыв блок Б-4</div>
+                    <div class="detail">⏱️ Таймер до взрыва: <span style="color:var(--red);font-weight:700;" id="blastTimer">02ч 15мин</span></div>
+                    <span class="badge badge-red">ОЖИДАНИЕ</span>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- ================================================================
-         БЛОК 4: СКЛАД И СНАБЖЕНИЕ (CEO + СНАБЖЕНИЕ)
+         БЛОК 4: ПРОИЗВОДСТВО И ДОБЫЧА (ТОЛЬКО CEO)
     ================================================================ -->
-    <div id="supplyBlock">
-        <div class="section-label">📦 Склад и снабжение</div>
+    <div id="block-production">
+        <div class="section-label">⛏️ Геологоразведка и добыча</div>
 
+        <!-- FRONTIER -->
         <div class="card">
-            <div class="card-header">
-                <span class="card-title">⛽ Дизельное топливо</span>
-                <span class="badge badge-gold">Остаток: 4 дня</span>
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+                <span class="card-title"><span class="icon">📍</span> Frontier (Лубумбаши)</span>
+                <span class="arrow open">▾</span>
             </div>
-            <div class="fuel-indicator">
-                <span style="font-size:14px;font-weight:600;">24 500 л</span>
-                <div class="fuel-bar">
-                    <div class="fill warning" style="width:55%;"></div>
+            <div class="accordion-body open">
+                <div class="flex-between">
+                    <span style="font-size:20px;font-weight:800;">5 400 <span style="font-size:14px;font-weight:400;color:var(--text-muted);">/ 5 500 т</span></span>
+                    <span class="badge badge-green">98%</span>
                 </div>
-                <span style="font-size:12px;color:var(--text-muted);">из 45 000 л</span>
-            </div>
-            <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">
-                ⚠️ При текущем расходе (6 200 л/сут) хватит на 4 дня
+                <div class="progress-wrap">
+                    <div class="progress-fill green" style="width:98%;"></div>
+                </div>
+
+                <div style="margin-top:14px;">
+                    <div class="mine-metric">
+                        <span class="name">Сходимость содержания Cu</span>
+                        <span class="stat green">
+                            <span class="status-dot green"></span> 
+                            Разведка: 2.75% → Фабрика: 2.82% 📈
+                        </span>
+                    </div>
+                    <div class="mine-metric">
+                        <span class="name">Извлечение (Recovery)</span>
+                        <span class="stat green"><span class="status-dot green"></span> 84.5%</span>
+                    </div>
+                    <div class="mine-metric" style="border-bottom: none;">
+                        <span class="name">Настроение инвесторов</span>
+                        <span class="investor-sentiment bull">🔥 ОТЛИЧНОЕ</span>
+                    </div>
+                </div>
             </div>
         </div>
 
+        <!-- METALKOL -->
+        <div class="card">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+                <span class="card-title"><span class="icon">📍</span> Metalkol (Колвези)</span>
+                <span class="arrow">▾</span>
+            </div>
+            <div class="accordion-body">
+                <div class="flex-between">
+                    <span style="font-size:20px;font-weight:800;">3 100 <span style="font-size:14px;font-weight:400;color:var(--text-muted);">/ 4 200 т</span></span>
+                    <span class="badge badge-orange">73%</span>
+                </div>
+                <div class="progress-wrap">
+                    <div class="progress-fill orange" style="width:73%;"></div>
+                </div>
+                <div style="margin-top:14px;">
+                    <div class="mine-metric">
+                        <span class="name">Сходимость содержания Co</span>
+                        <span class="stat red">
+                            <span class="status-dot red"></span> 
+                            Разведка: 0.52% → Фабрика: 0.38% 📉
+                        </span>
+                    </div>
+                    <div class="mine-metric">
+                        <span class="name">Разубоживание</span>
+                        <span class="stat red"><span class="status-dot red"></span> -0.14% (Критично!)</span>
+                    </div>
+                    <div class="mine-metric" style="border-bottom: none;">
+                        <span class="name">Настроение инвесторов</span>
+                        <span class="investor-sentiment bear">🚨 ПАНИКА</span>
+                    </div>
+                </div>
+
+                <button class="btn-action gold" onclick="showDemoToast('📊 Запрос отправлен. Главный геолог формирует отчет по пересчету блочной модели.')">
+                    📊 Запросить у Главного геолога пересчет блочной модели
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================
+         БЛОК 5: СНАБЖЕНИЕ И ИНЖЕНЕРИЯ (CEO + СНАБЖЕНИЕ)
+    ================================================================ -->
+    <div id="block-stock">
+        <div class="section-label">📦 Снабжение и инженерия</div>
+
+        <!-- FRONTIER -->
         <div class="card">
             <div class="card-header">
-                <span class="card-title">📦 Запчасти и расходники</span>
-                <span class="badge badge-blue">Критических: 2</span>
+                <span class="card-title"><span class="icon">📍</span> Frontier (Лубумбаши)</span>
+                <span class="badge badge-green">Стабильно</span>
             </div>
-            <div class="stock-item">
-                <span class="name">Гидронасосы</span>
-                <span class="qty">4 шт</span>
+
+            <div style="margin-bottom:12px;">
+                <div class="flex-between">
+                    <span style="font-weight:600;">⛽ Дизельное топливо</span>
+                    <span class="badge badge-green">Остаток: 14 суток ✅</span>
+                </div>
+                <div class="fuel-indicator">
+                    <span style="font-size:14px;font-weight:600;">85 000 л</span>
+                    <div class="fuel-bar">
+                        <div class="fill green" style="width:85%;"></div>
+                    </div>
+                    <span style="font-size:12px;color:var(--text-muted);">из 100 000 л</span>
+                </div>
             </div>
-            <div class="stock-item">
-                <span class="name">Фильтры топливные</span>
-                <span class="qty low">2 шт ⚠️</span>
+
+            <div>
+                <div class="flex-between" style="margin-bottom:6px;">
+                    <span style="font-weight:600;">🔧 Запчасти</span>
+                    <span class="badge badge-green">Норма</span>
+                </div>
+                <div class="stock-item">
+                    <span class="name">Крупногабаритные шины (CAT 789)</span>
+                    <span class="qty ok">6 шт</span>
+                </div>
+                <div class="stock-item">
+                    <span class="name">Футеровка мельниц</span>
+                    <span class="qty ok">Комплект доставлен</span>
+                </div>
             </div>
-            <div class="stock-item">
-                <span class="name">Цепи гусениц</span>
-                <span class="qty">3 компл.</span>
+        </div>
+
+        <!-- METALKOL -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title"><span class="icon">📍</span> Metalkol (Колвези)</span>
+                <span class="badge badge-red">КРИТИЧЕСКИЙ!</span>
             </div>
-            <div class="stock-item">
-                <span class="name">Смазочные материалы</span>
-                <span class="qty low">50 л ⚠️</span>
+
+            <div style="margin-bottom:12px;">
+                <div class="flex-between">
+                    <span style="font-weight:600;">⛽ Дизельное топливо</span>
+                    <span class="badge badge-red">Остаток: 3 суток ⚠️</span>
+                </div>
+                <div class="fuel-indicator">
+                    <span style="font-size:14px;font-weight:600;">18 500 л</span>
+                    <div class="fuel-bar">
+                        <div class="fill red" style="width:37%;"></div>
+                    </div>
+                    <span style="font-size:12px;color:var(--text-muted);">из 50 000 л</span>
+                </div>
+            </div>
+
+            <div>
+                <div class="flex-between" style="margin-bottom:6px;">
+                    <span style="font-weight:600;">🔧 Запчасти</span>
+                    <span class="badge badge-red">Критический простой!</span>
+                </div>
+                <div class="stock-item">
+                    <span class="name">Гидроцилиндры экскаватора</span>
+                    <span class="qty low">0 шт 🚨</span>
+                </div>
+                <div class="stock-item">
+                    <span class="name">Фильтры топливные</span>
+                    <span class="qty low">2 шт 🚨</span>
+                </div>
+            </div>
+
+            <div class="supply-actions">
+                <button class="btn-action" onclick="handleFuelConvoy()">🚚 Подтвердить выезд конвоя с топливом из Лубумбаши</button>
+                <button class="btn-action danger" onclick="showDemoToast('💸 Согласование авиа-доставки DHL из ЮАР отправлено. Ожидайте подтверждение.')">💸 Согласовать авиа-доставку DHL из ЮАР</button>
             </div>
         </div>
     </div>
@@ -575,52 +886,138 @@
             }));
             tg.showAlert('✅ Команда отправлена: ' + action);
         } else {
-            alert('⚠️ Команда "' + action + '" отправлена (демо-режим)');
+            showDemoToast('📢 Команда "' + action + '" отправлена (демо-режим)');
         }
     }
 
     // ================================================================
-    // ПЕРЕКЛЮЧЕНИЕ РОЛЕЙ
+    // ДЕМО-ОКНО
+    // ================================================================
+    function showDemoToast(message) {
+        const old = document.querySelector('.demo-toast');
+        if (old) old.remove();
+
+        const toast = document.createElement('div');
+        toast.className = 'demo-toast';
+        toast.innerHTML = `<span class="emoji">✅</span> ${message}`;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transition = 'opacity 0.4s ease';
+            setTimeout(() => toast.remove(), 400);
+        }, 3500);
+    }
+
+    // ================================================================
+    // ОБРАБОТКА КНОПКИ КОНВОЯ
+    // ================================================================
+    function handleFuelConvoy() {
+        const btn = event.target;
+        btn.textContent = '🚛 Конвой в пути, прибытие через 18 часов...';
+        btn.style.opacity = '0.7';
+        btn.style.cursor = 'default';
+        btn.disabled = true;
+
+        showDemoToast('🚛 Конвой с топливом выехал из Лубумбаши. Прибытие в Колвези через 18 часов.');
+
+        setTimeout(() => {
+            btn.textContent = '✅ Конвой в пути';
+            btn.style.background = 'var(--green)';
+            btn.style.color = '#070a0f';
+            btn.disabled = true;
+        }, 1500);
+    }
+
+    // ================================================================
+    // ТАЙМЕР ОБРАТНОГО ОТСЧЕТА (ДЛЯ ВЗРЫВА)
+    // ================================================================
+    let blastCountdown = 135; // 2 часа 15 минут в минутах
+
+    function updateBlastTimer() {
+        const timerEl = document.getElementById('blastTimer');
+        if (!timerEl) return;
+
+        if (blastCountdown <= 0) {
+            timerEl.textContent = '💥 ВЗРЫВ!';
+            timerEl.style.color = 'var(--red)';
+            return;
+        }
+
+        const hours = Math.floor(blastCountdown / 60);
+        const minutes = blastCountdown % 60;
+        timerEl.textContent = `${String(hours).padStart(2, '0')}ч ${String(minutes).padStart(2, '0')}мин`;
+        blastCountdown--;
+    }
+
+    // ================================================================
+    // ПЕРЕКЛЮЧЕНИЕ РОЛЕЙ (ЖЕСТКОЕ)
     // ================================================================
     let currentRole = 'ceo';
 
-    function switchRole(role) {
+    function switchRole(role, buttonElement) {
         currentRole = role;
 
         // Обновляем кнопки
         document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
-        document.querySelector(`.role-btn.${role}`).classList.add('active');
+        if (buttonElement) buttonElement.classList.add('active');
 
-        // Управление видимостью блоков
-        const alerts = document.getElementById('alertsBlock');
-        const production = document.getElementById('productionBlock');
-        const supply = document.getElementById('supplyBlock');
+        // Получаем все блоки
+        const weather = document.getElementById('block-weather');
+        const markets = document.getElementById('block-markets');
+        const alerts = document.getElementById('block-alerts');
+        const blast = document.getElementById('block-blast');
+        const production = document.getElementById('block-production');
+        const stock = document.getElementById('block-stock');
 
-        // Алерты видят CEO и Механик
-        alerts.style.display = (role === 'ceo' || role === 'mechanic') ? 'block' : 'none';
+        // Скрываем всё
+        weather.style.display = 'block';
+        markets.style.display = 'block';
+        alerts.style.display = 'block';
+        blast.style.display = 'block';
+        production.style.display = 'block';
+        stock.style.display = 'block';
 
-        // Производство видит только CEO
-        production.style.display = (role === 'ceo') ? 'block' : 'none';
-
-        // Склад видят CEO и Снабжение
-        supply.style.display = (role === 'ceo' || role === 'supply') ? 'block' : 'none';
+        if (role === 'ceo') {
+            // CEO — видит всё
+            weather.style.display = 'block';
+            markets.style.display = 'block';
+            alerts.style.display = 'block';
+            blast.style.display = 'block';
+            production.style.display = 'block';
+            stock.style.display = 'block';
+        } else if (role === 'mechanic') {
+            // Механик — Погода, Алерты, Таймлайн взрывов, Снабжение (только запчасти)
+            weather.style.display = 'block';
+            markets.style.display = 'none';      // ❌ Скрываем биржу
+            alerts.style.display = 'block';
+            blast.style.display = 'block';
+            production.style.display = 'none';   // ❌ Скрываем производство
+            stock.style.display = 'block';       // Показываем снабжение (запчасти)
+        } else if (role === 'supply') {
+            // Снабжение — Погода, Топливо, Запчасти
+            weather.style.display = 'block';
+            markets.style.display = 'none';      // ❌ Скрываем биржу
+            alerts.style.display = 'none';       // ❌ Скрываем алерты
+            blast.style.display = 'none';        // ❌ Скрываем взрывы
+            production.style.display = 'none';   // ❌ Скрываем производство
+            stock.style.display = 'block';       // Показываем снабжение
+        }
     }
 
     // ================================================================
     // АККОРДЕОН
     // ================================================================
     function toggleAccordion(header) {
-        const body = header.nextElementSibling.nextElementSibling; // пропускаем статичную часть
-        // Ищем следующий элемент с классом accordion-body
-        let el = header.parentElement.querySelector('.accordion-body');
-        if (!el) return;
+        const body = header.parentElement.querySelector('.accordion-body');
+        if (!body) return;
 
         const arrow = header.querySelector('.arrow');
-        if (el.classList.contains('open')) {
-            el.classList.remove('open');
+        if (body.classList.contains('open')) {
+            body.classList.remove('open');
             arrow.classList.remove('open');
         } else {
-            el.classList.add('open');
+            body.classList.add('open');
             arrow.classList.add('open');
         }
     }
@@ -632,18 +1029,18 @@
         const tg = window.Telegram?.WebApp;
         if (tg) {
             tg.ready();
-            // Обработка данных из бота
-            tg.onEvent('mainButtonClicked', () => {
-                console.log('Main button clicked');
-            });
         }
 
-        // По умолчанию — CEO
-        switchRole('ceo');
+        // Запускаем таймер взрыва
+        updateBlastTimer();
+        setInterval(updateBlastTimer, 60000); // Обновляем каждую минуту
 
-        // Автоматически открываем аккордеон при загрузке
+        // По умолчанию — CEO
+        switchRole('ceo', document.querySelector('.role-btn.ceo'));
+
+        // Автоматически открываем аккордеон для Frontier
         setTimeout(() => {
-            const firstAccordion = document.querySelector('.accordion-header');
+            const firstAccordion = document.querySelector('#block-production .accordion-header');
             if (firstAccordion) {
                 const body = firstAccordion.parentElement.querySelector('.accordion-body');
                 if (body) {
@@ -656,6 +1053,5 @@
 
     document.addEventListener('DOMContentLoaded', init);
 </script>
-
 </body>
 </html>
