@@ -6,126 +6,327 @@
     <title>Africa Mining Dashboard</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        /* ================================================================
+           БАЗА
+        ================================================================ */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background: var(--tg-theme-bg-color, #f4f7fc);
-            color: var(--tg-theme-text-color, #1a202c);
+            background: #f0f4f8;
+            color: #1a202c;
             padding: 16px;
             min-height: 100vh;
         }
-        .dashboard { max-width: 600px; margin: 0 auto; }
+        .dashboard { max-width: 640px; margin: 0 auto; }
 
-        /* Панель переключения ролей */
+        /* ================================================================
+           ПАНЕЛЬ ПЕРЕКЛЮЧЕНИЯ РОЛЕЙ
+        ================================================================ */
         .role-panel {
             display: flex;
             gap: 8px;
-            margin-bottom: 20px;
-            padding: 12px;
-            background: var(--tg-theme-secondary-bg-color, #ffffff);
+            margin-bottom: 24px;
+            padding: 8px;
+            background: #ffffff;
             border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
             flex-wrap: wrap;
             justify-content: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
         .role-btn {
-            padding: 8px 20px;
-            border: 2px solid #e2e8f0;
-            border-radius: 20px;
+            padding: 10px 24px;
+            border: none;
+            border-radius: 12px;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            transition: 0.2s;
-            background: transparent;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: #f7fafc;
             color: #4a5568;
-            opacity: 0.6;
+            opacity: 0.7;
+            flex: 1 1 auto;
+            min-width: 80px;
         }
+        .role-btn:hover { opacity: 0.9; transform: translateY(-1px); }
         .role-btn.active {
             opacity: 1;
-            border-color: #2b6cb0;
             background: #2b6cb0;
             color: #fff;
+            box-shadow: 0 4px 12px rgba(43,108,176,0.3);
+            transform: scale(1.02);
         }
-        .role-btn.ceo.active { border-color: #2f855a; background: #2f855a; }
-        .role-btn.mechanic.active { border-color: #d69e2e; background: #d69e2e; }
-        .role-btn.supply.active { border-color: #2b6cb0; background: #2b6cb0; }
+        .role-btn.ceo.active { background: #2f855a; box-shadow: 0 4px 12px rgba(47,133,90,0.3); }
+        .role-btn.mechanic.active { background: #d69e2e; box-shadow: 0 4px 12px rgba(214,158,46,0.3); }
+        .role-btn.supply.active { background: #2b6cb0; box-shadow: 0 4px 12px rgba(43,108,176,0.3); }
 
-        /* Инфографика */
-        .header { margin-bottom: 20px; }
-        .header h1 { font-size: 24px; font-weight: 800; }
-        .header .subtitle { font-size: 14px; color: #718096; }
+        /* ================================================================
+           ШАПКА
+        ================================================================ */
+        .header {
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .header h1 {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #2f855a, #2b6cb0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header .subtitle {
+            font-size: 14px;
+            color: #718096;
+            margin-top: 2px;
+        }
         .header .role-badge {
             display: inline-block;
             background: #2b6cb0;
             color: #fff;
-            padding: 4px 12px;
-            border-radius: 12px;
+            padding: 4px 16px;
+            border-radius: 20px;
             font-size: 12px;
             font-weight: 600;
             margin-top: 8px;
+            letter-spacing: 0.3px;
         }
+        .header .role-badge.ceo { background: #2f855a; }
+        .header .role-badge.mechanic { background: #d69e2e; }
+        .header .role-badge.supply { background: #2b6cb0; }
 
-        .grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
-        @media (min-width: 480px) { .grid { grid-template-columns: repeat(2, 1fr); } .card-full { grid-column: 1 / -1; } }
-
-        .card {
-            background: var(--tg-theme-secondary-bg-color, #ffffff);
-            border-radius: 16px;
-            padding: 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            border-left: 4px solid #e2e8f0;
-        }
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .card-title { font-size: 15px; font-weight: 700; }
-        .stat-value { font-size: 22px; font-weight: 800; }
-        .stat-label { font-size: 11px; color: #718096; margin-top: 2px; }
-        .progress-bar { height: 6px; background: #edf2f7; border-radius: 3px; margin-top: 8px; }
-        .progress-fill { height: 100%; border-radius: 3px; background: #2b6cb0; }
-
-        .status-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
-        .status-green { background: #48bb78; }
-        .status-yellow { background: #ecc94b; }
-        .status-red { background: #fc8181; }
-
+        /* ================================================================
+           БАННЕР АЛЕРТОВ (ВСЕГДА ВИДЕН)
+        ================================================================ */
         .alert-banner {
             background: #fff5f5;
-            border-left: 4px solid #fc8181;
-            padding: 12px;
-            border-radius: 12px;
-            margin-bottom: 20px;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 24px;
+            border: 1px solid #fed7d7;
+            box-shadow: 0 2px 8px rgba(252,129,129,0.1);
         }
-        .alert-banner h3 { color: #c53030; font-size: 14px; margin-bottom: 6px; }
-        .alert-item { font-size: 13px; padding: 4px 0; color: #2d3748; }
+        .alert-banner h3 {
+            font-size: 14px;
+            color: #c53030;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .alert-banner h3::before { content: "🚨"; font-size: 18px; }
+        .alert-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 0;
+            font-size: 13px;
+            color: #2d3748;
+            border-bottom: 1px solid #fed7d7;
+        }
+        .alert-item:last-child { border-bottom: none; }
+
+        /* ================================================================
+           АККОРДЕОН
+        ================================================================ */
+        .accordion {
+            background: #ffffff;
+            border-radius: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border: 1px solid #edf2f7;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .accordion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.2s;
+            gap: 12px;
+        }
+        .accordion-header:hover { background: #f7fafc; }
+        .accordion-header .title {
+            font-size: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .accordion-header .title .icon { font-size: 20px; }
+        .accordion-header .arrow {
+            font-size: 18px;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #a0aec0;
+        }
+        .accordion-header .arrow.open { transform: rotate(180deg); }
+        .accordion-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s ease;
+            padding: 0 20px;
+        }
+        .accordion-body.open {
+            max-height: 2000px;
+            padding: 0 20px 20px 20px;
+        }
+
+        /* ================================================================
+           КАРТОЧКИ И ИНДИКАТОРЫ
+        ================================================================ */
+        .card-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        @media (max-width: 480px) { .card-grid { grid-template-columns: 1fr; } }
+
+        .stat-card {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 14px 16px;
+            border: 1px solid #edf2f7;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .stat-card .label { font-size: 12px; color: #718096; font-weight: 500; text-transform: uppercase; letter-spacing: 0.3px; }
+        .stat-card .value { font-size: 22px; font-weight: 800; margin-top: 4px; }
+        .stat-card .sub { font-size: 13px; color: #4a5568; margin-top: 2px; }
+
+        /* Прогресс-бар */
+        .progress-wrap {
+            margin-top: 10px;
+            background: #edf2f7;
+            border-radius: 20px;
+            height: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 20px;
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+            background: #2b6cb0;
+        }
+        .progress-fill.green { background: #48bb78; }
+        .progress-fill.yellow { background: #ecc94b; }
+        .progress-fill.red { background: #fc8181; }
+
+        /* ================================================================
+           КАРТОЧКИ-УВЕДОМЛЕНИЯ (Алерты)
+        ================================================================ */
+        .notification-card {
+            background: #ffffff;
+            border-radius: 14px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            border: 1px solid #edf2f7;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.02);
+        }
+        .notification-card:hover { border-color: #cbd5e0; }
+        .notification-card .info { flex: 1; }
+        .notification-card .info .title { font-size: 14px; font-weight: 600; }
+        .notification-card .info .desc { font-size: 13px; color: #4a5568; margin-top: 2px; }
+        .badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .badge-critical { background: #fc8181; color: #fff; }
+        .badge-warning { background: #ecc94b; color: #fff; }
+        .badge-info { background: #63b3ed; color: #fff; }
+        .badge-success { background: #48bb78; color: #fff; }
+
+        .action-btn-sm {
+            padding: 6px 14px;
+            border: none;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #2b6cb0;
+            color: #fff;
+            white-space: nowrap;
+        }
+        .action-btn-sm:hover { background: #2c5282; transform: scale(1.02); }
+        .action-btn-sm.danger { background: #fc8181; }
+        .action-btn-sm.danger:hover { background: #e53e3e; }
+        .action-btn-sm.success { background: #48bb78; }
+        .action-btn-sm.success:hover { background: #2f855a; }
+
+        /* ================================================================
+           КНОПКИ ДЕЙСТВИЙ ВНИЗУ
+        ================================================================ */
+        .action-bar {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 2px solid #e2e8f0;
+        }
+        .action-btn {
+            padding: 14px;
+            border: none;
+            border-radius: 14px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #2b6cb0;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .action-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(43,108,176,0.3); }
+        .action-btn.secondary { background: #edf2f7; color: #2d3748; }
+        .action-btn.secondary:hover { background: #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
 
         .hidden { display: none !important; }
-        .flex-between { display: flex; justify-content: space-between; align-items: center; }
-        .mt-2 { margin-top: 8px; }
 
-        .warehouse-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #edf2f7; }
-        .warehouse-item:last-child { border: 0; }
-        .warehouse-value.low { color: #e53e3e; font-weight: 700; }
-        .tag { background: #edf2f7; padding: 2px 8px; border-radius: 12px; font-size: 11px; }
-        .btn { 
-            display: block; width: 100%; padding: 14px; border: 0; border-radius: 12px; font-weight: 700; font-size: 16px;
-            cursor: pointer; margin-top: 12px; text-align: center;
+        /* ================================================================
+           АНИМАЦИЯ ПОЯВЛЕНИЯ
+        ================================================================ */
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        .btn-danger { background: #fc8181; color: #fff; }
-        .btn-primary { background: #2b6cb0; color: #fff; }
-        .action-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 24px; }
-        .action-btn {
-            padding: 12px; border: 0; border-radius: 12px; font-weight: 600; cursor: pointer;
-            background: var(--tg-theme-button-color, #2b6cb0); color: #fff;
+        .accordion { animation: fadeSlideUp 0.4s ease forwards; }
+        .accordion:nth-child(2) { animation-delay: 0.05s; }
+        .accordion:nth-child(3) { animation-delay: 0.1s; }
+
+        /* ================================================================
+           ПЕЧАТЬ
+        ================================================================ */
+        @media print {
+            .role-panel, .action-bar, .action-btn-sm { display: none; }
+            .accordion-body { max-height: none !important; padding: 0 20px 20px 20px !important; }
+            .accordion-header .arrow { display: none; }
+            body { background: #fff; padding: 20px; }
         }
-        .action-btn.secondary { background: #edf2f7; color: #2d3748; }
-        @media print { .role-panel, .action-bar { display: none; } }
     </style>
 </head>
 <body>
 <div class="dashboard" id="app">
 
-    <!-- Панель переключения -->
+    <!-- Панель переключения ролей -->
     <div class="role-panel">
-        <span style="font-size:12px;color:#718096;width:100%;text-align:center;">👤 Режим:</span>
         <button class="role-btn ceo active" onclick="switchRole('ceo')">👑 CEO</button>
         <button class="role-btn mechanic" onclick="switchRole('mechanic')">🔧 Механик</button>
         <button class="role-btn supply" onclick="switchRole('supply')">📦 Снабжение</button>
@@ -135,19 +336,19 @@
     <div class="header">
         <h1>⛏️ Africa Mining</h1>
         <div class="subtitle">Ситуационный центр • <span id="currentTime"></span></div>
-        <div class="role-badge" id="roleBadge">CEO</div>
+        <div class="role-badge ceo" id="roleBadge">CEO</div>
     </div>
 
     <!-- Баннер алертов (виден всем) -->
-    <div id="alertBanner" class="alert-banner">
-        <h3>🚨 Критические алерты</h3>
+    <div class="alert-banner" id="alertBanner">
+        <h3>Критические алерты</h3>
         <div id="alertList">
-            <div class="alert-item"><span class="status-dot status-red"></span> Конго-3: Ремонт дробилки (остановка)</div>
-            <div class="alert-item"><span class="status-dot status-yellow"></span> Танзания: Задержка поставок ГСМ</div>
+            <div class="alert-item"><span class="status-dot" style="background:#fc8181;display:inline-block;width:8px;height:8px;border-radius:50%;"></span> Конго-3: Ремонт дробилки (остановка)</div>
+            <div class="alert-item"><span class="status-dot" style="background:#ecc94b;display:inline-block;width:8px;height:8px;border-radius:50%;"></span> Танзания: Задержка поставок ГСМ</div>
         </div>
     </div>
 
-    <!-- Содержимое дашборда -->
+    <!-- Контент дашборда -->
     <div id="dashboardContent"></div>
 
     <!-- Кнопки действий -->
@@ -159,158 +360,276 @@
 
 <script>
     // ================================================================
-    // ДАННЫЕ ДЛЯ ИНФОГРАФИКИ
+    // ДАННЫЕ
     // ================================================================
-
     const MINING_DATA = {
-        'Конго': { mines: [
-            { name: 'Конго-1', ore: 'Медь', plan: 5000, actual: 4800, percent: 96, status: 'green', issues: [] },
-            { name: 'Конго-2', ore: 'Медь', plan: 4500, actual: 3200, percent: 71, status: 'yellow', issues: ['Сбой конвейера'] },
-            { name: 'Конго-3', ore: 'Кобальт', plan: 3000, actual: 1500, percent: 50, status: 'red', issues: ['Ремонт дробилки'] }
-        ], phone: '+243XXXXXXXXX' },
-        'Танзания': { mines: [
-            { name: 'Танзания-1', ore: 'Золото', plan: 2000, actual: 1900, percent: 95, status: 'green', issues: [] },
-            { name: 'Танзания-2', ore: 'Золото', plan: 1800, actual: 1200, percent: 67, status: 'yellow', issues: ['Задержка поставок'] },
-            { name: 'Танзания-3', ore: 'Золото', plan: 1500, actual: 900, percent: 60, status: 'red', issues: ['Проблемы с вентиляцией'] }
-        ], phone: '+255XXXXXXXXX' },
-        'Мозамбик': { mines: [
-            { name: 'Мозамбик-1', ore: 'Уголь', plan: 3000, actual: 2900, percent: 97, status: 'green', issues: [] },
-            { name: 'Мозамбик-2', ore: 'Уголь', plan: 2500, actual: 1800, percent: 72, status: 'yellow', issues: ['Перегрузка'] },
-            { name: 'Мозамбик-3', ore: 'Уголь', plan: 2000, actual: 800, percent: 40, status: 'red', issues: ['Авария на шахте'] }
-        ], phone: '+258XXXXXXXXX' }
-    };
-
-    const WAREHOUSE = {
-        'Дизельное топливо': { value: 24500, unit: 'л', critical: 10000 },
-        'Взрывчатка': { value: 180, unit: 'кг', critical: 50 },
-        'Запчасти': { value: 12, unit: 'компл.', critical: 5 },
-        'Смазка': { value: 850, unit: 'л', critical: 300 }
+        'Конго': {
+            mines: [
+                { name: 'Конго-1', ore: 'Медь', plan: 5000, actual: 4800, percent: 96, status: 'green', issues: [] },
+                { name: 'Конго-2', ore: 'Медь', plan: 4500, actual: 3200, percent: 71, status: 'yellow', issues: ['Сбой конвейера'] },
+                { name: 'Конго-3', ore: 'Кобальт', plan: 3000, actual: 1500, percent: 50, status: 'red', issues: ['Ремонт дробилки'] }
+            ],
+            phone: '+243XXXXXXXXX'
+        },
+        'Танзания': {
+            mines: [
+                { name: 'Танзания-1', ore: 'Золото', plan: 2000, actual: 1900, percent: 95, status: 'green', issues: [] },
+                { name: 'Танзания-2', ore: 'Золото', plan: 1800, actual: 1200, percent: 67, status: 'yellow', issues: ['Задержка поставок'] },
+                { name: 'Танзания-3', ore: 'Золото', plan: 1500, actual: 900, percent: 60, status: 'red', issues: ['Проблемы с вентиляцией'] }
+            ],
+            phone: '+255XXXXXXXXX'
+        },
+        'Мозамбик': {
+            mines: [
+                { name: 'Мозамбик-1', ore: 'Уголь', plan: 3000, actual: 2900, percent: 97, status: 'green', issues: [] },
+                { name: 'Мозамбик-2', ore: 'Уголь', plan: 2500, actual: 1800, percent: 72, status: 'yellow', issues: ['Перегрузка'] },
+                { name: 'Мозамбик-3', ore: 'Уголь', plan: 2000, actual: 800, percent: 40, status: 'red', issues: ['Авария на шахте'] }
+            ],
+            phone: '+258XXXXXXXXX'
+        }
     };
 
     const REPAIRS = [
         { equipment: 'Экскаватор №3', issue: 'Замена гидронасоса', status: 'В работе', priority: 'high' },
-        { equipment: 'Бульдозер №7', issue: 'Ремонт гусеницы', status: 'Ожидание', priority: 'medium' },
+        { equipment: 'Бульдозер №7', issue: 'Ремонт гусеницы', status: 'Ожидание запчастей', priority: 'medium' },
         { equipment: 'Самосвал №12', issue: 'Диагностика двигателя', status: 'Плановый', priority: 'low' }
     ];
 
-    // ================================================================
-    // ЛОГИКА ПЕРЕКЛЮЧЕНИЯ И ОТРИСОВКИ
-    // ================================================================
+    const WAREHOUSE = {
+        'Дизельное топливо': { value: 24500, unit: 'л', critical: 10000 },
+        'Взрывчатка': { value: 180, unit: 'кг', critical: 50 },
+        'Запчасти (компл.)': { value: 12, unit: 'шт', critical: 5 },
+        'Смазочные материалы': { value: 850, unit: 'л', critical: 300 }
+    };
 
     let currentRole = 'ceo';
 
+    // ================================================================
+    // ПЕРЕКЛЮЧЕНИЕ РОЛЕЙ
+    // ================================================================
     function switchRole(role) {
         currentRole = role;
         document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
         document.querySelector(`.role-btn.${role}`).classList.add('active');
-        document.getElementById('roleBadge').textContent = role === 'ceo' ? '👑 CEO' : role === 'mechanic' ? '🔧 Механик' : '📦 Снабжение';
+        const badge = document.getElementById('roleBadge');
+        badge.textContent = role === 'ceo' ? 'CEO' : role === 'mechanic' ? 'Механик' : 'Снабжение';
+        badge.className = 'role-badge ' + role;
         renderDashboard(role);
     }
 
+    // ================================================================
+    // ОТРИСОВКА ДАШБОРДА
+    // ================================================================
     function renderDashboard(role) {
         const container = document.getElementById('dashboardContent');
         let html = '';
 
-        // === CEO: ВСЯ АНАЛИТИКА ===
         if (role === 'ceo') {
-            // 1. Сводка по добыче
+            // ---- АККОРДЕОН 1: БЕЗОПАСНОСТЬ И ЧС ----
+            html += `
+                <div class="accordion">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <span class="title"><span class="icon">🚨</span> Безопасность и ЧС</span>
+                        <span class="arrow">▾</span>
+                    </div>
+                    <div class="accordion-body open">
+                        <div class="notification-card">
+                            <div class="info">
+                                <div class="title">🆘 Геолог Иванов</div>
+                                <div class="desc">SOS, координаты -4.2, 15.3 • 15 мин назад</div>
+                            </div>
+                            <div><span class="badge badge-critical">КРИТИЧЕСКИЙ SOS</span></div>
+                        </div>
+                        <div class="notification-card">
+                            <div class="info">
+                                <div class="title">⛈️ Тропический ливень</div>
+                                <div class="desc">Дорога N1 размыта • Отгрузка задерживается</div>
+                            </div>
+                            <div><span class="badge badge-warning">ОПАСНОСТЬ</span></div>
+                        </div>
+                        <div class="notification-card">
+                            <div class="info">
+                                <div class="title">🛑 Остановка фабрики №2</div>
+                                <div class="desc">Перегрев двигателя • 32 мин назад</div>
+                            </div>
+                            <div><span class="badge badge-critical">ОСТАНОВКА</span></div>
+                        </div>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+                            <button class="action-btn-sm danger" onclick="alert('🚨 Сигнал SOS отправлен всем конвоям!')">🚨 Вызвать СБ</button>
+                            <button class="action-btn-sm" onclick="alert('📄 Запрос отчета у логистов отправлен')">📄 Запросить отчет у логистов</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // ---- АККОРДЕОН 2: ГЛОБАЛЬНАЯ ДОБЫЧА ----
             let totalPlan = 0, totalActual = 0;
             Object.values(MINING_DATA).forEach(c => c.mines.forEach(m => { totalPlan += m.plan; totalActual += m.actual; }));
             const totalPercent = totalPlan ? Math.round(totalActual/totalPlan*100) : 0;
+            const progressClass = totalPercent >= 90 ? 'green' : totalPercent >= 75 ? 'yellow' : 'red';
 
             html += `
-                <div class="card card-full" style="border-left-color: #2f855a;">
-                    <div class="card-header"><span class="card-title">📊 Глобальная добыча (все страны)</span> <span class="tag">Обновлено: сейчас</span></div>
-                    <div class="stat-value">${totalActual.toLocaleString()} <span style="font-size:16px;font-weight:400;">/ ${totalPlan.toLocaleString()} т</span></div>
-                    <div class="stat-label">Выполнение плана: ${totalPercent}%</div>
-                    <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(totalPercent,100)}%;background:${totalPercent>=90?'#48bb78':totalPercent>=70?'#ecc94b':'#fc8181'}"></div></div>
-                </div>
-            `;
-
-            // 2. Безопасность и логистика
-            html += `
-                <div class="card card-full" style="border-left-color: #fc8181;">
-                    <div class="card-header"><span class="card-title">🚨 Безопасность и ЧС</span> <span class="tag">🔴 2 критических</span></div>
-                    <div class="alert-item">🆘 Геолог Иванов: SOS, координаты -4.2, 15.3</div>
-                    <div class="alert-item">⛈️ Ливень: дорога N1 размыта</div>
-                    <div class="alert-item">🛑 Остановка фабрики №2</div>
-                    <div style="margin-top:8px;font-size:13px;">🚚 В пути: 18 грузовиков | ⏳ Задержек: 3</div>
-                </div>
-            `;
-
-            // 3. Экономика
-            const copperPrice = (Math.random() * 600 + 8900).toFixed(0);
-            html += `
-                <div class="card card-full" style="border-left-color: #2b6cb0;">
-                    <div class="card-header"><span class="card-title">💰 Экономика и сбыт</span> <span class="tag">LME</span></div>
-                    <div class="flex-between"><span>Медь (LME):</span> <b>$${copperPrice}/т</b></div>
-                    <div class="flex-between"><span>Вольфрам (LME):</span> <b>$${(Math.random() * 3000 + 42000).toFixed(0)}/т</b></div>
-                    <div class="flex-between mt-2"><span>💰 Склад (концентрат):</span> <b>$${(Math.random() * 4000000 + 12000000).toFixed(0)}</b></div>
-                    <div class="flex-between"><span>⛽ Остаток дизеля:</span> <b>${(Math.random() * 15000 + 15000).toFixed(0)} л</b> <span class="tag">на 2 дня</span></div>
-                </div>
-            `;
-
-            // 4. Карточки стран
-            Object.keys(MINING_DATA).forEach(country => {
-                const c = MINING_DATA[country];
-                const p = c.mines.reduce((s,m) => s + m.plan, 0);
-                const a = c.mines.reduce((s,m) => s + m.actual, 0);
-                const pc = p ? Math.round(a/p*100) : 0;
-                html += `
-                    <div class="card">
-                        <div class="card-header"><span class="card-title">🇨🇩 ${country}</span> <span class="status-dot status-${pc>=90?'green':pc>=70?'yellow':'red'}"></span></div>
-                        <div><span class="stat-value">${a.toLocaleString()}</span> / ${p.toLocaleString()} т</div>
-                        <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(pc,100)}%;background:${pc>=90?'#48bb78':pc>=70?'#ecc94b':'#fc8181'}"></div></div>
-                        <div style="font-size:12px;color:#718096;margin-top:6px;">${c.mines.map(m => `${m.name} (${m.percent}%)`).join(' • ')}</div>
+                <div class="accordion">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <span class="title"><span class="icon">⛏️</span> Глобальная добыча</span>
+                        <span class="arrow">▾</span>
                     </div>
-                `;
-            });
+                    <div class="accordion-body open">
+                        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
+                            <span style="font-size:28px;font-weight:800;">${totalActual.toLocaleString()}</span>
+                            <span style="color:#718096;">из ${totalPlan.toLocaleString()} т</span>
+                        </div>
+                        <div style="font-size:14px;color:#4a5568;">Выполнение плана: ${totalPercent}%</div>
+                        <div class="progress-wrap">
+                            <div class="progress-fill ${progressClass}" style="width:${Math.min(totalPercent,100)}%;"></div>
+                        </div>
+                        <div class="card-grid" style="margin-top:14px;">
+                            ${Object.keys(MINING_DATA).map(country => {
+                                const c = MINING_DATA[country];
+                                const p = c.mines.reduce((s,m) => s + m.plan, 0);
+                                const a = c.mines.reduce((s,m) => s + m.actual, 0);
+                                const pc = p ? Math.round(a/p*100) : 0;
+                                const cls = pc >= 90 ? 'green' : pc >= 75 ? 'yellow' : 'red';
+                                return `
+                                    <div class="stat-card">
+                                        <div class="label">🇨🇩 ${country}</div>
+                                        <div class="value">${a.toLocaleString()}</div>
+                                        <div class="sub">${pc}% от плана</div>
+                                        <div class="progress-wrap" style="height:4px;margin-top:4px;">
+                                            <div class="progress-fill ${cls}" style="width:${Math.min(pc,100)}%;"></div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // ---- АККОРДЕОН 3: ЭКОНОМИКА И СБЫТ ----
+            const copperPrice = (Math.random() * 600 + 8900).toFixed(0);
+            const tungstenPrice = (Math.random() * 3000 + 42000).toFixed(0);
+            const stockValue = (Math.random() * 4000000 + 12000000).toFixed(0);
+            const fuel = (Math.random() * 15000 + 15000).toFixed(0);
+
+            html += `
+                <div class="accordion">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <span class="title"><span class="icon">💰</span> Экономика и сбыт</span>
+                        <span class="arrow">▾</span>
+                    </div>
+                    <div class="accordion-body open">
+                        <div class="card-grid">
+                            <div class="stat-card"><div class="label">Медь (LME)</div><div class="value">$${copperPrice}</div><div class="sub">за тонну</div></div>
+                            <div class="stat-card"><div class="label">Вольфрам (LME)</div><div class="value">$${tungstenPrice}</div><div class="sub">за тонну</div></div>
+                            <div class="stat-card"><div class="label">💰 Склад (концентрат)</div><div class="value">$${stockValue}</div><div class="sub">оценка стоимости</div></div>
+                            <div class="stat-card"><div class="label">⛽ Остаток дизеля</div><div class="value">${fuel} л</div><div class="sub">хватит на ${Math.round(fuel/8500)} дня</div></div>
+                        </div>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
+                            <button class="action-btn-sm success" onclick="alert('📊 Прогноз цен на неделю отправлен в Telegram')">📊 Прогноз цен</button>
+                            <button class="action-btn-sm" onclick="alert('📄 Отчет по себестоимости готов')">📄 Себестоимость</button>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
 
-        // === МЕХАНИК: ТОЛЬКО РЕМОНТЫ ===
+        // ---- РЕЖИМ МЕХАНИК ----
         if (role === 'mechanic') {
             html += `
-                <div class="card card-full" style="border-left-color: #d69e2e;">
-                    <div class="card-header"><span class="card-title">🔧 Статус ремонтов</span> <span class="tag">${REPAIRS.length} активных</span></div>
-                    ${REPAIRS.map(r => `
-                        <div class="card" style="margin-top:8px;border-left-color: ${r.priority==='high'?'#fc8181':r.priority==='medium'?'#ecc94b':'#48bb78'};">
-                            <div><b>${r.equipment}</b> <span class="tag">${r.status}</span></div>
-                            <div style="font-size:14px;color:#2d3748;">${r.issue}</div>
+                <div class="accordion">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <span class="title"><span class="icon">🔧</span> Управление ремонтами</span>
+                        <span class="arrow">▾</span>
+                    </div>
+                    <div class="accordion-body open">
+                        ${REPAIRS.map(r => {
+                            const badge = r.priority === 'high' ? 'badge-critical' : r.priority === 'medium' ? 'badge-warning' : 'badge-info';
+                            const label = r.priority === 'high' ? 'КРИТИЧЕСКИЙ' : r.priority === 'medium' ? 'СРЕДНИЙ' : 'ПЛАНОВЫЙ';
+                            return `
+                                <div class="notification-card">
+                                    <div class="info">
+                                        <div class="title">🛠️ ${r.equipment}</div>
+                                        <div class="desc">${r.issue} • Статус: ${r.status}</div>
+                                    </div>
+                                    <div><span class="badge ${badge}">${label}</span></div>
+                                </div>
+                            `;
+                        }).join('')}
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+                            <button class="action-btn-sm danger" onclick="alert('🚨 АВАРИЙНАЯ ОСТАНОВКА ВСЕХ РАБОТ!')">🚨 Аварийная остановка</button>
+                            <button class="action-btn-sm" onclick="alert('📞 Ремонтная бригада вызвана')">📞 Вызвать бригаду</button>
                         </div>
-                    `).join('')}
-                    <button class="btn btn-danger" onclick="alert('🚨 АВАРИЙНАЯ ОСТАНОВКА ВСЕХ РАБОТ!')">🚨 АВАРИЙНАЯ ОСТАНОВКА</button>
+                    </div>
                 </div>
             `;
         }
 
-        // === СНАБЖЕНИЕ: ТОЛЬКО СКЛАД ===
+        // ---- РЕЖИМ СНАБЖЕНИЕ ----
         if (role === 'supply') {
             html += `
-                <div class="card card-full" style="border-left-color: #2b6cb0;">
-                    <div class="card-header"><span class="card-title">📦 Остатки склада</span> <span class="tag">Обновлено: сегодня</span></div>
-                    ${Object.keys(WAREHOUSE).map(name => {
-                        const w = WAREHOUSE[name];
-                        const low = w.value < w.critical;
-                        return `<div class="warehouse-item"><span>${name}</span> <span class="warehouse-value ${low?'low':''}">${w.value.toLocaleString()} ${w.unit} ${low?'⚠️':''}</span></div>`;
-                    }).join('')}
-                    <div style="margin-top:12px;background:#edf2f7;padding:12px;border-radius:12px;">
-                        <div class="flex-between"><span>⛽ Прогноз расхода топлива:</span> <b>${Math.round(Math.random()*2000+4000)} л/сут</b></div>
-                        <div class="flex-between"><span>📦 Критические позиции:</span> <b>${Object.keys(WAREHOUSE).filter(n => WAREHOUSE[n].value < WAREHOUSE[n].critical).length}</b></div>
-                        <button class="btn btn-primary" onclick="alert('📞 Запрос на пополнение склада отправлен!')">📞 Заказать поставку</button>
+                <div class="accordion">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <span class="title"><span class="icon">📦</span> Управление складом</span>
+                        <span class="arrow">▾</span>
+                    </div>
+                    <div class="accordion-body open">
+                        ${Object.keys(WAREHOUSE).map(name => {
+                            const w = WAREHOUSE[name];
+                            const low = w.value < w.critical;
+                            return `
+                                <div class="notification-card" style="${low ? 'border-left:4px solid #fc8181;' : ''}">
+                                    <div class="info">
+                                        <div class="title">${name}</div>
+                                        <div class="desc">${w.value.toLocaleString()} ${w.unit} ${low ? '⚠️ Критический запас' : ''}</div>
+                                    </div>
+                                    <div><span class="badge ${low ? 'badge-critical' : 'badge-success'}">${low ? 'СРОЧНО' : 'НОРМА'}</span></div>
+                                </div>
+                            `;
+                        }).join('')}
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+                            <button class="action-btn-sm danger" onclick="alert('📞 Запрос на пополнение склада отправлен!')">📞 Заказать поставку</button>
+                            <button class="action-btn-sm" onclick="alert('📊 Отчет по остаткам отправлен')">📊 Отчет по складу</button>
+                        </div>
                     </div>
                 </div>
             `;
         }
 
         container.innerHTML = html;
-        document.getElementById('callBtn').textContent = role === 'ceo' ? '📞 Связаться с директорами' : role === 'mechanic' ? '📞 Вызвать ремонтную бригаду' : '📞 Связаться со снабжением';
-        document.getElementById('callBtn').onclick = () => alert('📞 Звонок... (в реальной версии будет интеграция)');
+
+        // Настройка кнопки звонка
+        const callBtn = document.getElementById('callBtn');
+        if (role === 'ceo') {
+            callBtn.textContent = '📞 Связаться с директорами';
+            callBtn.onclick = () => alert('📞 Звонок директорам... (интеграция с VoIP)');
+        } else if (role === 'mechanic') {
+            callBtn.textContent = '📞 Вызвать ремонтную бригаду';
+            callBtn.onclick = () => alert('📞 Ремонтная бригада вызвана!');
+        } else {
+            callBtn.textContent = '📞 Связаться со снабжением';
+            callBtn.onclick = () => alert('📞 Запрос на пополнение склада отправлен!');
+        }
+    }
+
+    // ================================================================
+    // АККОРДЕОН
+    // ================================================================
+    function toggleAccordion(header) {
+        const body = header.nextElementSibling;
+        const arrow = header.querySelector('.arrow');
+        if (body.classList.contains('open')) {
+            body.classList.remove('open');
+            arrow.classList.remove('open');
+        } else {
+            body.classList.add('open');
+            arrow.classList.add('open');
+        }
     }
 
     // ================================================================
     // ИНИЦИАЛИЗАЦИЯ
     // ================================================================
-
     function init() {
         const tg = window.Telegram?.WebApp;
         if (tg) tg.ready();
