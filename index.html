@@ -24,7 +24,6 @@
             transition: background 0.3s, color 0.3s;
         }
 
-        /* ===== СВЕТОФОР ===== */
         .status-dot {
             display: inline-block;
             width: 12px;
@@ -39,7 +38,6 @@
         .status-red { background: #ef4444; }
         .status-gray { background: #9ca3af; }
 
-        /* ===== КАРТОЧКИ ===== */
         .dashboard {
             max-width: 600px;
             margin: 0 auto;
@@ -183,7 +181,6 @@
         .progress-yellow { background: #eab308; }
         .progress-red { background: #ef4444; }
 
-        /* ===== КНОПКИ ДЕЙСТВИЙ ===== */
         .action-bar {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -222,7 +219,6 @@
             font-size: 18px;
         }
 
-        /* ===== ЗАГРУЗКА ===== */
         .loading {
             text-align: center;
             padding: 40px 20px;
@@ -243,7 +239,6 @@
             to { transform: rotate(360deg); }
         }
 
-        /* ===== АДАПТИВ ===== */
         @media (min-width: 480px) {
             .grid {
                 grid-template-columns: repeat(2, 1fr);
@@ -258,7 +253,6 @@
             .header h1 { font-size: 28px; }
         }
 
-        /* ===== ТЕМНАЯ ТЕМА ===== */
         @media (prefers-color-scheme: dark) {
             body {
                 background: var(--tg-theme-bg-color, #1a1a2e);
@@ -266,7 +260,6 @@
             }
         }
 
-        /* ===== ПЕЧАТЬ PDF ===== */
         @media print {
             .action-bar { display: none; }
             .card:active { transform: none; }
@@ -320,30 +313,8 @@
 
 <script>
     // ================================================================
-    // 1. КОНФИГУРАЦИЯ (синхронизировано с config.py)
+    // 1. КОНФИГУРАЦИЯ ДАННЫХ
     // ================================================================
-    const ROLES_CONFIG = {
-        // Роли и их видимость
-        CEO: {
-            label: 'CEO',
-            view: 'all_africa',
-            phones: {
-                'Конго': '+243XXXXXXXXX',
-                'Танзания': '+255XXXXXXXXX',
-                'Мозамбик': '+258XXXXXXXXX'
-            }
-        },
-        MINE_MANAGER: {
-            label: 'MINE_MANAGER',
-            view: 'country_only', // показываем только свою страну
-            phones: {} // заполняется из данных
-        },
-        ASSISTANT: {
-            label: 'ASSISTANT',
-            view: 'all_africa_no_finance',
-            phones: {}
-        }
-    };
 
     // Фейковые данные (синхронизированы с data.py)
     const MINING_DATA = {
@@ -373,14 +344,76 @@
         }
     };
 
-    // Роли и их привязка к странам (синхронизировано с WHITE_LIST)
-    const USER_ROLES = {
-        // Пример: "123456789": { role: "CEO", region: "all_africa" }
-        // ВАЖНО: в реальном проекте это получается из Telegram WebApp + вашего config.py
-    };
+    // ================================================================
+    // 2. ПОЛУЧЕНИЕ ПОЛЬЗОВАТЕЛЯ (С ЗАГЛУШКОЙ)
+    // ================================================================
+
+    /**
+     * ГЛАВНОЕ РЕШЕНИЕ:
+     * Если Telegram не передал user, используем заглушку.
+     * Это позволяет открывать WebApp в браузере и при ошибках.
+     */
+    function getUserData() {
+        const tg = window.Telegram?.WebApp;
+        
+        // Пытаемся получить user из Telegram
+        let user = tg?.initDataUnsafe?.user;
+        
+        // Если user нет или это не объект — создаем заглушку
+        if (!user || typeof user !== 'object') {
+            console.warn('⚠️ Telegram user не найден, используем заглушку');
+            
+            // Генерируем случайный ID для демонстрации
+            const fakeId = Math.floor(Math.random() * 1000000000);
+            
+            user = {
+                id: fakeId,
+                first_name: 'Тестовый',
+                last_name: 'Пользователь',
+                username: 'test_user',
+                language_code: 'ru',
+                is_premium: false
+            };
+        }
+        
+        return user;
+    }
+
+    /**
+     * Получение роли пользователя
+     * В реальном проекте данные должны приходить с бэкенда,
+     * но для демо используем маппинг
+     */
+    function getUserRole(userId) {
+        // Пример маппинга ID пользователей на роли
+        // ВНИМАНИЕ: замените на свои ID из WHITE_LIST в config.py!
+        const roleMap = {
+            // '123456789': { role: 'CEO', region: 'all_africa' },
+            // '987654321': { role: 'MINE_MANAGER', region: 'Конго' },
+            // '555555555': { role: 'ASSISTANT', region: 'all_africa' }
+        };
+        
+        // Если ID есть в маппинге — используем его
+        if (roleMap[userId]) {
+            return roleMap[userId];
+        }
+        
+        // Если ID начинается с 9 — считаем CEO (для демо)
+        if (String(userId).startsWith('9')) {
+            return { role: 'CEO', region: 'all_africa' };
+        }
+        
+        // Если ID начинается с 5 — ASSISTANT (для демо)
+        if (String(userId).startsWith('5')) {
+            return { role: 'ASSISTANT', region: 'all_africa' };
+        }
+        
+        // По умолчанию — MINE_MANAGER (Конго)
+        return { role: 'MINE_MANAGER', region: 'Конго' };
+    }
 
     // ================================================================
-    // 2. ОСНОВНАЯ ЛОГИКА
+    // 3. ОСНОВНАЯ ЛОГИКА
     // ================================================================
 
     let currentUser = null;
@@ -389,35 +422,24 @@
     function init() {
         const tg = window.Telegram?.WebApp;
         
-        // 1. СРАЗУ говорим Телеграму убрать квадраты загрузки
-        tg?.ready(); 
-
-        if (!tg) {
-            document.getElementById('loading').innerHTML = '<p>❌ Ошибка: Telegram WebApp не найден</p>';
-            return;
+        // Если WebApp есть — сообщаем, что готовы
+        if (tg) {
+            tg.ready();
         }
 
-        // Получаем данные пользователя
-        const user = tg.initDataUnsafe?.user;
-        
-        if (!user) {
-            document.getElementById('loading').innerHTML = '<p>❌ Пожалуйста, откройте через Telegram</p>';
-            return;
-        }
-
+        // Получаем данные пользователя (всегда! даже без Telegram)
+        const user = getUserData();
         currentUser = user;
-
-        // Определяем роль пользователя
-        const userId = String(user.id);
-        const roleConfig = USER_ROLES[userId] || { role: 'MINE_MANAGER', region: 'Конго' };
-        userRoleData = roleConfig;
-
+        
+        // Определяем роль
+        userRoleData = getUserRole(user.id);
+        
         // Скрываем загрузку, показываем контент
         document.getElementById('loading').classList.add('hidden');
         document.getElementById('content').classList.remove('hidden');
 
         // Рендерим дашборд
-        renderDashboard(user, roleConfig);
+        renderDashboard(user, userRoleData);
     }
 
     function renderDashboard(user, roleConfig) {
@@ -425,30 +447,23 @@
         const region = roleConfig.region;
 
         // Обновляем шапку
-        document.getElementById('userInfo').textContent = `${user.first_name || 'User'} ${user.last_name || ''}`.trim() || user.username || 'Пользователь';
-        document.getElementById('roleBadge').textContent = ROLES_CONFIG[role]?.label || role;
+        const userName = [user.first_name, user.last_name].filter(Boolean).join(' ') || user.username || 'Пользователь';
+        document.getElementById('userInfo').textContent = userName + (user.is_premium ? ' ⭐' : '');
+        document.getElementById('roleBadge').textContent = role;
 
         // Определяем, что показывать
         let countriesToShow = [];
-        let showFinance = false;
 
-        if (role === 'CEO') {
+        if (role === 'CEO' || role === 'ASSISTANT') {
             countriesToShow = Object.keys(MINING_DATA);
-            showFinance = true;
-        } else if (role === 'ASSISTANT') {
-            countriesToShow = Object.keys(MINING_DATA);
-            showFinance = false;
         } else if (role === 'MINE_MANAGER') {
-            // Показываем только свою страну
             const userCountry = region || 'Конго';
             if (MINING_DATA[userCountry]) {
                 countriesToShow = [userCountry];
             } else {
-                countriesToShow = ['Конго']; // fallback
+                countriesToShow = ['Конго'];
             }
-            showFinance = false;
         } else {
-            // fallback
             countriesToShow = ['Конго'];
         }
 
@@ -540,7 +555,6 @@
                             <div class="progress-bar">
                                 <div class="progress-fill progress-${statusColor}" style="width: ${Math.min(totalPercent, 100)}%"></div>
                             </div>
-                            ${showFinance ? `<div style="margin-top: 8px; font-size: 13px; color: var(--tg-theme-hint-color);">💰 Средняя цена: $${(Math.random() * 10000 + 5000).toFixed(0)}/т</div>` : ''}
                         </div>
                     </div>
                     <div class="grid" style="margin-top: 8px;">
@@ -591,15 +605,11 @@
 
         // Кнопка звонка
         const callBtn = document.getElementById('callBtn');
-        let phoneNumber = null;
 
         if (role === 'CEO') {
-            // CEO звонит директорам стран (показываем выбор)
             callBtn.textContent = '📞 Связаться с директором';
             callBtn.onclick = () => {
                 const countries = Object.keys(MINING_DATA);
-                // В реальном проекте здесь будет выбор или прямой звонок
-                // Для демо - звоним в первую страну
                 const firstCountry = countries[0];
                 const phone = MINING_DATA[firstCountry]?.phone;
                 if (phone) {
@@ -612,10 +622,9 @@
             const userCountry = region || 'Конго';
             const phone = MINING_DATA[userCountry]?.phone;
             if (phone) {
-                phoneNumber = phone;
                 callBtn.textContent = `📞 Позвонить диспетчеру (${userCountry})`;
                 callBtn.onclick = () => {
-                    window.location.href = `tel:${phoneNumber}`;
+                    window.location.href = `tel:${phone}`;
                 };
             } else {
                 callBtn.style.opacity = '0.5';
@@ -636,29 +645,11 @@
     }
 
     // ================================================================
-    // 3. ЗАПУСК
+    // 4. ЗАПУСК
     // ================================================================
 
-    // Ждем загрузки Telegram WebApp
-    if (window.Telegram?.WebApp) {
-        init();
-    } else {
-        document.addEventListener('DOMContentLoaded', () => {
-            if (window.Telegram?.WebApp) {
-                init();
-            } else {
-                document.getElementById('loading').innerHTML = '<p>⏳ Загрузка Telegram WebApp...</p>';
-                // Повторная попытка через 1 секунду
-                setTimeout(() => {
-                    if (window.Telegram?.WebApp) {
-                        init();
-                    } else {
-                        document.getElementById('loading').innerHTML = '<p>❌ Не удалось загрузить Telegram WebApp. Проверьте подключение к интернету.</p>';
-                    }
-                }, 1000);
-            }
-        });
-    }
+    // Запускаем сразу, как только загрузилась страница
+    document.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>
